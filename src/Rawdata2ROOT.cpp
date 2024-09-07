@@ -14,7 +14,7 @@ Rawdata2ROOT::Rawdata2ROOT(const char* rawdatafilename) : fPixtpcdata(nullptr)
     f_file->open(rawdatafilename,ios::in | ios::binary);
     if(!f_file->is_open())
         throw "FILE DOES NOT EXIST!\n";
-    fRootName = "./Test_hg_300ns.root";
+    fRootName = "./Test_lg_300ns.root";
 }
 
 Rawdata2ROOT::~Rawdata2ROOT()
