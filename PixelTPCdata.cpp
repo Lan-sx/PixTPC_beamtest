@@ -43,9 +43,9 @@ VecSingleChn & PixelTPCdata::Getdata_IJ (int chipid, int chnid)
     return Getdata_I(chipid).at(chnid); 
 }
 
-PairQT       & PixelTPCdata::Getdata_IJK(int chipid, int chnid, int kk)
-{
-    kk = (kk<4) ? kk : 0;
-    return Getdata_IJ(chipid,chnid).at(kk);
-}
+//PairQT       & PixelTPCdata::Getdata_IJK(int chipid, int chnid, int kk)
+//{
+//    kk = (kk<4) ? kk : 0;
+//    return Getdata_IJ(chipid,chnid).at(kk);
+//}
 

@@ -10,10 +10,13 @@
  * ******************************************************************/
 #ifndef __PixelTPCdata_H__
 #define __PixelTPCdata_H__ 1
+//std
 #include <iostream>
 #include <vector>
 #include <array>
 #include <map>
+
+//ROOT CERN
 #include "TObject.h"
 
 using PairQT= std::pair<double,double>;            // TYPE3
@@ -37,6 +40,9 @@ private:
     //std::vector<std::array<std::vector<std::pair<double,double>>,128>> fTestdata;
     std::vector<Array128Chns> fTestdata;
     
+    //TODO vars need to add 
+    //1. TimeStamp 
+    //2. Flags etc
     //sub collections
 public:
     PixelTPCdata(int NumofChips);
@@ -50,7 +56,7 @@ public:
     int GetTriggleID() { return fTriggleID; }
     Array128Chns & Getdata_I  (int chipid);
     VecSingleChn & Getdata_IJ (int chipid, int chnid);
-    PairQT       & Getdata_IJK(int chipid, int chnid, int kk); 
+    //PairQT       & Getdata_IJK(int chipid, int chnid, int kk); 
     
     // TODO : operate ()  
     
