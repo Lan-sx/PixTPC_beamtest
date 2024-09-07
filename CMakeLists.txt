@@ -13,12 +13,17 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
 
 #set(CMAKE_CXX_STANDARD 14 CACHE STRING "")
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_FLAGS)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 ")
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 
-find_package(ROOT REQUIRED COMPONENTS  RIO Hist Tree Net  Spectrum)
+if(NOT TARGET Garfield::Garfield)
+    find_package(Garfield REQUIRED)
+endif()
 
+
+find_package(ROOT REQUIRED COMPONENTS  RIO Hist Tree Net  Spectrum)
 
 include(${ROOT_USE_FILE})
 include_directories(${PROJECT_SOURCE_DIR})
@@ -34,19 +39,12 @@ add_definitions(${ROOT_CXX_FLAGS})
 
 add_executable(${PROJECT_NAME} mainPixTPC.cpp PixelTPCdata.h PixelTPCdata.cpp ${sources} ${headers})
 #add_library(${PROJECT_NAME} SHARED PixelTPCdata.h PixelTPCdata.cpp ${sources} ${headers})
-target_link_libraries(${PROJECT_NAME} ${ROOT_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} Garfield::Garfield ${ROOT_LIBRARIES})
+#target_link_libraries(${PROJECT_NAME} ${ROOT_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 ROOT_GENERATE_DICTIONARY(PixelTPCdata_dict PixelTPCdata.h MODULE ${PROJECT_NAME} LINKDEF LinkDef.h)
-
-foreach(_script ${EXAMPLEB1_SCRIPTS})
-  configure_file(
-    ${PROJECT_SOURCE_DIR}/${_script}
-    ${PROJECT_BINARY_DIR}/${_script}
-    COPYONLY
-    )
-endforeach()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
