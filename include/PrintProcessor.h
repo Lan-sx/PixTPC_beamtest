@@ -13,6 +13,7 @@
 
 //ROOT CERN
 #include "TH1D.h"
+#include "TGraphErrors.h"
 
 //
 #include "Processor.h"
@@ -33,6 +34,7 @@ public:
     //public methods
     TH1D* GetHistQ() { return f_histQ; }
     TH1D* GetHistT() { return f_histT; }
+    TGraphErrors* GetGrQ() { return fgrQ; }
 
 private:
     TFile* f_file;
@@ -40,6 +42,8 @@ private:
     PixelTPCdata* f_PixTPCdata;
     
     TH1D *f_histQ,*f_histT;
+    TH1D** fhQ128;
+    TGraphErrors* fgrQ;
 };
 
 #endif
