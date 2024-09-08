@@ -12,22 +12,22 @@
 GenSimData::GenSimData(int Nevts) : fNevts(Nevts),fGas(nullptr), fCmp(nullptr), fSensor(nullptr),
                                     fTrkProjxy(nullptr),fPixelResponse(nullptr)
 {
-    fMat10x300 = new PixelMatrix;
-    fMat10x300->ResizeTo(__ROW__,__COL__);
     //this->EnableDebugging();        
 }
 
 GenSimData::~GenSimData()
 { 
+    fvecMat10x300Q.clear();
+    fvecMat10x300T.clear();
     delete fGas;
     delete fCmp;
     delete fSensor;
-    delete fMat10x300;
+    //delete fMat10x300;
 }
 
 void GenSimData::InitGasCmpSensor()
 {
-    //Initial Gas 
+    //Initial Gas, TDR gas, T2K
     fGas = new Garfield::MediumMagboltz("ar",95.,"CF4",3.,"isobutane",2.);
     fGas->SetPressure(760.);
     fGas->SetTemperature(293.15);
@@ -65,12 +65,17 @@ void GenSimData::GenTracks(std::string particleName,double Mom, double DriftLeng
     auto Tdrift = DriftLength/Velo_e;            // [us] 
 
     //New Track
-    for(int i=0;i<fNevts;++i)
+    for(int itrk=0; itrk<fNevts; ++itrk)
     {
-        if(i%100==0)
-            std::printf("=====>New Track%d %s \n",i,particleName.c_str());
+        if(itrk%100==0)
+            std::printf("=====>New Track%d %s \n",itrk,particleName.c_str());
 
         this->NewTrack(0.225,0.,DriftLength,0.,0.,1.,0); 
+
+        auto Mat10x300Q_i = std::make_shared<PixelMatrix>();
+        auto Mat10x300T_i = std::make_shared<PixelMatrix>();
+        Mat10x300Q_i->ResizeTo(__ROW__,__COL__);
+        Mat10x300T_i->ResizeTo(__ROW__,__COL__);
 
         double xc(0.),yc(0.),zc(0.),tc(0.),ec(0.),extra(0.);
         int nc(0);
@@ -99,18 +104,76 @@ void GenSimData::GenTracks(std::string particleName,double Mom, double DriftLeng
                     auto rowcolpair = BeamUnities::Position2RowCol(xe_afteraval,ye_afteraval);
                     if(rowcolpair.first >=0 && rowcolpair.second >= 0)
                     {
-                        (*fMat10x300)(rowcolpair.first,rowcolpair.second)+=1;
+                        (*Mat10x300Q_i)(rowcolpair.first,rowcolpair.second)+=1;
+                        (*Mat10x300T_i)(rowcolpair.first,rowcolpair.second) = te_afterdrift;
                     }
                 }
                 //End of a Avalance
             }
             //End of a Cluster
         }
+        fvecMat10x300Q.push_back(Mat10x300Q_i);
+        fvecMat10x300T.push_back(Mat10x300T_i);
         //End of a Track
     }
 
     std::printf("=============> End of GenTracks! \n");
 }
+
+std::shared_ptr<PixelMatrix> GenSimData::GetPixelMatrix(int i)
+{
+    //std::printf("========> Test Get!\n");
+    if(i < 0 || i > fvecMat10x300Q.size() ) 
+        throw std::out_of_range("!!!Error!!! out of range in GetPixelMatrix");
+    
+    return fvecMat10x300Q[i];
+}
+
+void GenSimData::WritePixelTPCdata(std::string filename, const std::vector<std::pair<int,int>> vMaps)
+{
+    auto outfile = new TFile(filename.data(),"RECREATE");
+    outfile->cd();
+    auto tr_out = new TTree("PixTPCdata","tpc channel data"); 
+        
+    auto pixeltpcdata = new PixelTPCdata(__NumChip__);
+    tr_out->Branch("pixelTPCdata",&pixeltpcdata);
+
+    for(size_t itrk=0; itrk < fNevts; ++itrk)
+    {
+        pixeltpcdata->SetTiggleID(itrk);
+        
+        //Loop track sparse matrix and fill pixelTPCdata
+        auto mat10x300Q_i = fvecMat10x300Q.at(itrk);
+        auto mat10x300T_i = fvecMat10x300T.at(itrk);
+        auto rowIdx = mat10x300Q_i->GetRowIndexArray();
+        auto colIdx = mat10x300Q_i->GetColIndexArray();
+        auto pData =  mat10x300Q_i->GetMatrixArray();
+    
+        for(int irow=0;irow < mat10x300Q_i->GetNrows(); ++irow)
+        {
+            const int sIdx = rowIdx[irow];
+            const int eIdx = rowIdx[irow+1];
+            //std::cout<<"====> "<<sIdx<<"\t"<<eIdx<<std::endl;
+            for(int idx = sIdx; idx<eIdx;++idx)
+            {
+                const int icol = colIdx[idx];
+                auto chipchnpair = BeamUnities::RowColIdx2ChipChn(irow,icol,vMaps);
+                auto pixelQ = (*mat10x300Q_i)(irow,icol);
+                auto pixelT = (*mat10x300T_i)(irow,icol);
+                (*pixeltpcdata)(chipchnpair.first,chipchnpair.second).push_back(std::make_pair(pixelT,pixelQ));
+            } 
+        }// end of sparse matrix
+        tr_out->Fill();
+        pixeltpcdata->ClearPixelTPCdata(__NumChip__);
+    }// end of tracks
+    
+    //Write root file 
+    tr_out->Write();
+    outfile->Close();
+
+    std::printf("======>MC data Write Done!\n");
+}
+
 
 
 

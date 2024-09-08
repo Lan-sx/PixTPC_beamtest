@@ -12,8 +12,11 @@
 #ifndef __GenSimData_H__
 #define __GenSimData_H__ 1
 //std
+#include <vector>
 
 //ROOT 
+#include "TFile.h"
+#include "TTree.h"
 #include "TRandom3.h"
 #include "TF1.h"
 #include "TPolyLine3D.h"
@@ -31,16 +34,22 @@
 #include "PixelTPCdata.h"
 #include "PixelMatrix.h"
 
+class PixelMatrix;
+
 class GenSimData : public Garfield::TrackHeed
 {
 public:
     GenSimData(int Nevts=1);
     ~GenSimData();
+
+    //Set method
     
     //Generate tracks
     void GenTracks(std::string particleName="e-",double Mom=5e+9,double DriftLength=5.);
+    //Save tracks data to PixelTPCdata
+    void WritePixelTPCdata(std::string filename, const std::vector<std::pair<int,int>> vMaps);
     
-    PixelMatrix* GetMat10x300() { return fMat10x300; }
+    std::shared_ptr<PixelMatrix> GetPixelMatrix(int i);
     TGraph* GetProjTrk() { return fTrkProjxy; }
     TH2D* GetPixelResponse() { return fPixelResponse; }
 
@@ -49,13 +58,14 @@ protected:
 
 private:
     int fNevts;
-    PixelMatrix* fMat10x300;
+    std::vector<std::shared_ptr<PixelMatrix>> fvecMat10x300Q;
+    std::vector<std::shared_ptr<PixelMatrix>> fvecMat10x300T;
+
     Garfield::MediumMagboltz* fGas;
     Garfield::ComponentConstant* fCmp;
     Garfield::Sensor* fSensor;
     TGraph* fTrkProjxy;
     TH2D* fPixelResponse;
-
 };
 
 #endif
