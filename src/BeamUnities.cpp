@@ -15,11 +15,10 @@ std::vector<std::pair<int,int>> BeamUnities::CreateChipChnToRowColMap(std::strin
     std::ifstream fin(ChipChnmapfile.data(),std::ios::in);
     if(!fin.is_open())
     {
-        std::printf("########!!!!Error!!! Maps file doesn't exist\n");
-
+        //std::printf("########!!!!Error!!! Maps file doesn't exist\n");
+        throw std::runtime_error("########!!!!Error!!! Maps file doesn't exist");
     }
     std::string lines;
-    //vMaps.resize(__ROW__*__COL__);
 
     //skip header line
     std::getline(fin,lines);
@@ -49,6 +48,7 @@ std::pair<int,int> BeamUnities::RowColIdx2ChipChn(int row, int col,const std::ve
     if(row<0 || row>=__ROW__ || col<0 || col>=__COL__) 
     {
         std::printf(">>>>>>>>>>>>>>>>>>>>>> Error!!! row col in RowColIdx2ChipChn\n");
+        //throw  std::out_of_range(">>>>>>>>>>>>>>>>>>>>>> Error!!! row col in RowColIdx2ChipChn");
         return std::make_pair(-1,-1);
     }
     

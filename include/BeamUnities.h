@@ -17,6 +17,7 @@
 #include <map>
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
 
 //global pars
 constexpr int  __ROW__=10;
