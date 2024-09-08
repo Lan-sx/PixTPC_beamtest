@@ -15,6 +15,7 @@
 #include <vector>
 #include <array>
 #include <map>
+#include <stdexcept>
 
 //ROOT CERN
 #include "TObject.h"
@@ -59,7 +60,8 @@ public:
     //PairQT       & Getdata_IJK(int chipid, int chnid, int kk); 
     
     // TODO : operate ()  
-    
+    VecSingleChn & operator()(int chipid, int chnid);
+
     void ClearPixelTPCdata();
 
     ClassDef(PixelTPCdata,1);

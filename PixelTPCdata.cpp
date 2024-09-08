@@ -43,6 +43,15 @@ VecSingleChn & PixelTPCdata::Getdata_IJ (int chipid, int chnid)
     return Getdata_I(chipid).at(chnid); 
 }
 
+VecSingleChn & PixelTPCdata::operator()(int chipid, int chnid)
+{
+    if(chipid <0 || chipid>=fTestdata.size() || chnid <0 || chnid>=128) 
+        throw std::out_of_range("Chip and Chn Idx out of range!");
+
+    return fTestdata.at(chipid).at(chnid);
+    //return fTestdata[chipid][chnid];
+}
+
 //PairQT       & PixelTPCdata::Getdata_IJK(int chipid, int chnid, int kk)
 //{
 //    kk = (kk<4) ? kk : 0;
