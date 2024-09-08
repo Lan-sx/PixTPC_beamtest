@@ -59,10 +59,9 @@ public:
     VecSingleChn & Getdata_IJ (int chipid, int chnid);
     //PairQT       & Getdata_IJK(int chipid, int chnid, int kk); 
     
-    // TODO : operate ()  
     VecSingleChn & operator()(int chipid, int chnid);
 
-    void ClearPixelTPCdata();
+    void ClearPixelTPCdata(int NumofChips);
 
     ClassDef(PixelTPCdata,1);
 

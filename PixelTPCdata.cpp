@@ -26,9 +26,10 @@ void PixelTPCdata::FillPixelTPCdata(Array128Chns &arr128chns,int chipid)
     fTestdata.at(chipid) = arr128chns;
 }
 
-void PixelTPCdata::ClearPixelTPCdata()
+void PixelTPCdata::ClearPixelTPCdata(int NumofChips)
 {
     fTestdata.clear();
+    fTestdata.resize(NumofChips);
 }
 
 Array128Chns & PixelTPCdata::Getdata_I  (int chipid)
