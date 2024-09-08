@@ -14,7 +14,6 @@
 //std
 
 //ROOT 
-#include "TMatrixDSparse.h"
 #include "TRandom3.h"
 #include "TF1.h"
 #include "TPolyLine3D.h"
@@ -30,6 +29,7 @@
 //Users
 #include "BeamUnities.h"
 #include "PixelTPCdata.h"
+#include "PixelMatrix.h"
 
 class GenSimData : public Garfield::TrackHeed
 {
@@ -39,16 +39,17 @@ public:
     
     //Generate tracks
     void GenTracks(std::string particleName="e-",double Mom=5e+9,double DriftLength=5.);
+    
+    PixelMatrix* GetMat10x300() { return fMat10x300; }
     TGraph* GetProjTrk() { return fTrkProjxy; }
     TH2D* GetPixelResponse() { return fPixelResponse; }
-    TMatrixDSparse& GetMat10x300() { return fMat10x300; }
 
 protected:
     void InitGasCmpSensor();
 
 private:
     int fNevts;
-    TMatrixDSparse fMat10x300;
+    PixelMatrix* fMat10x300;
     Garfield::MediumMagboltz* fGas;
     Garfield::ComponentConstant* fCmp;
     Garfield::Sensor* fSensor;

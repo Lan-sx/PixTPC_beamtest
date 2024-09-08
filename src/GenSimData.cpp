@@ -12,7 +12,8 @@
 GenSimData::GenSimData(int Nevts) : fNevts(Nevts),fGas(nullptr), fCmp(nullptr), fSensor(nullptr),
                                     fTrkProjxy(nullptr),fPixelResponse(nullptr)
 {
-    fMat10x300.ResizeTo(__ROW__,__COL__);
+    fMat10x300 = new PixelMatrix;
+    fMat10x300->ResizeTo(__ROW__,__COL__);
     //this->EnableDebugging();        
 }
 
@@ -21,6 +22,7 @@ GenSimData::~GenSimData()
     delete fGas;
     delete fCmp;
     delete fSensor;
+    delete fMat10x300;
 }
 
 void GenSimData::InitGasCmpSensor()
@@ -51,11 +53,13 @@ void GenSimData::GenTracks(std::string particleName,double Mom, double DriftLeng
     this->SetParticle(particleName);
     this->SetMomentum(Mom);
     
+    // Polya dist from Yue Chang Simu.
     auto fpolya = new TF1("fpolya","[0]*pow(1+[1],1+[1])*pow(x/[2],[1])*exp(-(1+[1])*x/[2])/TMath::Gamma(1+[1])",0,10000);
     fpolya->SetParameter(0,3802);
     fpolya->SetParameter(1,0.487);
     fpolya->SetParameter(2,2092);
 
+    //Drift T sigma v.s. DriftLength
     auto fsigmaTvsZ = new TF1("fsigmaTvsZ","0.0001167+0.003273*sqrt(x)",0.,300);
     auto sigmaT = fsigmaTvsZ->Eval(DriftLength); // [us]
     auto Tdrift = DriftLength/Velo_e;            // [us] 
@@ -95,7 +99,7 @@ void GenSimData::GenTracks(std::string particleName,double Mom, double DriftLeng
                     auto rowcolpair = BeamUnities::Position2RowCol(xe_afteraval,ye_afteraval);
                     if(rowcolpair.first >=0 && rowcolpair.second >= 0)
                     {
-                        fMat10x300(rowcolpair.first,rowcolpair.second)+=1;
+                        (*fMat10x300)(rowcolpair.first,rowcolpair.second)+=1;
                     }
                 }
                 //End of a Avalance
