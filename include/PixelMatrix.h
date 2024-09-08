@@ -19,6 +19,10 @@
 #include "PixelTPCdata.h"
 #include "BeamUnities.h"
 
+extern std::vector<std::pair<int,int>> GlobalMaps;
+
+class PixelTPCdata;
+
 class PixelMatrix : public TMatrixDSparse
 {
 public:
@@ -26,6 +30,9 @@ public:
     PixelMatrix(PixelTPCdata* pixeltpcdata);
     ~PixelMatrix();
     
+    //public Methods
+    PixelMatrix& PixelTPCdata2PixelMatrix(PixelTPCdata* pixeltpcdata, char qt='Q' );
+
     TH2Poly* Matrix2HistReadout();
     TH2Poly* GetHistReadout();
 

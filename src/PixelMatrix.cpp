@@ -20,6 +20,25 @@ PixelMatrix::PixelMatrix(PixelTPCdata* pixeltpcdata) : TMatrixDSparse(__ROW__,__
 
 PixelMatrix::~PixelMatrix()
 {
+    delete fHistreadout;
+}
+
+PixelMatrix& PixelMatrix::PixelTPCdata2PixelMatrix(PixelTPCdata* pixeltpcdata,char qt)
+{
+    for(int chipsid=0; chipsid<__NumChip__; ++chipsid)
+    {
+        for(int chnid=0; chnid<__NumChn__; ++chnid)             
+        {
+            if((*pixeltpcdata)(chipsid,chnid).size()>0)
+            {
+                auto rowcolpair = BeamUnities::ChipChn2RowCol(chipsid,chnid,GlobalMaps);
+                (*this)(rowcolpair.first,rowcolpair.second) = (qt=='Q') ? (*pixeltpcdata)(chipsid,chnid).at(0).second : 
+                                                                          (*pixeltpcdata)(chipsid,chnid).at(0).first;
+            }
+        }
+    }
+
+    return *this;
 }
 
 void PixelMatrix::CreateReadoutPixelArray()
@@ -44,7 +63,7 @@ void PixelMatrix::CreateReadoutPixelArray()
 TH2Poly* PixelMatrix::Matrix2HistReadout()
 {
     CreateReadoutPixelArray();
-    
+
     auto rowIdx = this->GetRowIndexArray();
     auto colIdx = this->GetColIndexArray();
     auto pData = this->GetMatrixArray();
@@ -53,7 +72,7 @@ TH2Poly* PixelMatrix::Matrix2HistReadout()
     {
         const int sIdx = rowIdx[irow];
         const int eIdx = rowIdx[irow+1];
-        //cout<<"====> "<<sIdx<<"\t"<<eIdx<<endl;
+        //std::cout<<"====> "<<sIdx<<"\t"<<eIdx<<std::endl;
         for(int idx = sIdx; idx<eIdx;++idx)
         {
             const int icol = colIdx[idx];
