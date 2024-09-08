@@ -36,7 +36,6 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h)
 include_directories(${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
 add_definitions(${ROOT_CXX_FLAGS})
 
-
 add_executable(${PROJECT_NAME} mainPixTPC.cpp PixelTPCdata.h PixelTPCdata.cpp ${sources} ${headers})
 #add_library(${PROJECT_NAME} SHARED PixelTPCdata.h PixelTPCdata.cpp ${sources} ${headers})
 target_link_libraries(${PROJECT_NAME} Garfield::Garfield ${ROOT_LIBRARIES})
