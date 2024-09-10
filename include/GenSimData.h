@@ -35,6 +35,8 @@
 #include "PixelTPCdata.h"
 #include "PixelMatrix.h"
 
+extern std::vector<std::pair<int,int>> GlobalMaps;
+
 class PixelMatrix;
 
 class GenSimData : public Garfield::TrackHeed
@@ -48,7 +50,7 @@ public:
     //Generate tracks
     void GenTracks(std::string particleName="e-",double Mom=5e+9,double DriftLength=5.);
     //Save tracks data to PixelTPCdata
-    void WritePixelTPCdata(std::string filename, const std::vector<std::pair<int,int>> vMaps);
+    void WritePixelTPCdata(std::string filename);
     
     std::shared_ptr<PixelMatrix> GetPixelMatrix(int i);
     TGraph* GetProjTrk() { return fTrkProjxy; }

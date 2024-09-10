@@ -129,7 +129,7 @@ std::shared_ptr<PixelMatrix> GenSimData::GetPixelMatrix(int i)
     return fvecMat10x300Q[i];
 }
 
-void GenSimData::WritePixelTPCdata(std::string filename, const std::vector<std::pair<int,int>> vMaps)
+void GenSimData::WritePixelTPCdata(std::string filename)
 {
     //TODO using unique_ptr ...
     auto outfile = std::make_unique<TFile>(filename.data(),"RECREATE");
@@ -158,7 +158,7 @@ void GenSimData::WritePixelTPCdata(std::string filename, const std::vector<std::
             for(int idx = sIdx; idx<eIdx;++idx)
             {
                 const int icol = colIdx[idx];
-                auto chipchnpair = BeamUnities::RowColIdx2ChipChn(irow,icol,vMaps);
+                auto chipchnpair = BeamUnities::RowColIdx2ChipChn(irow,icol,GlobalMaps);
                 auto pixelQ = (*mat10x300Q_i)(irow,icol);
                 auto pixelT = (*mat10x300T_i)(irow,icol);
                 (*pixeltpcdata)(chipchnpair.first,chipchnpair.second).push_back(std::make_pair(pixelT,pixelQ));
