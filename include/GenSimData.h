@@ -13,6 +13,7 @@
 #define __GenSimData_H__ 1
 //std
 #include <vector>
+#include <memory>
 
 //ROOT 
 #include "TFile.h"

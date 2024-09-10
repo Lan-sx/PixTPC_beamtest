@@ -131,7 +131,8 @@ std::shared_ptr<PixelMatrix> GenSimData::GetPixelMatrix(int i)
 
 void GenSimData::WritePixelTPCdata(std::string filename, const std::vector<std::pair<int,int>> vMaps)
 {
-    auto outfile = new TFile(filename.data(),"RECREATE");
+    //TODO using unique_ptr ...
+    auto outfile = std::make_unique<TFile>(filename.data(),"RECREATE");
     outfile->cd();
     auto tr_out = new TTree("PixTPCdata","tpc channel data"); 
         
