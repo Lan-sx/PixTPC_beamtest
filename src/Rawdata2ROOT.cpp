@@ -14,7 +14,7 @@ Rawdata2ROOT::Rawdata2ROOT(const char* rawdatafilename) : fPixtpcdata(nullptr)
     f_file->open(rawdatafilename,ios::in | ios::binary);
     if(!f_file->is_open())
         throw std::runtime_error("FILE DOES NOT EXIST!");
-    fRootName = "./Test_hg_20ns.root";
+    fRootName = "./Test_lg_300ns.root";
 }
 
 Rawdata2ROOT::~Rawdata2ROOT()
@@ -150,6 +150,7 @@ bool Rawdata2ROOT::DoUnpackage()
             // fill std::vector<TYPE1>
             fPixtpcdata->FillPixelTPCdata(tmpArr128Chns,0);
             tree->Fill();
+            fPixtpcdata->ClearPixelTPCdata(1);
             vld_frame++;
         }
 
