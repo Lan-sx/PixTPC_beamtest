@@ -6,7 +6,6 @@
  * Description      : 
  * Update           : 
  * ******************************************************************/
-
 //std
 #include <iostream>
 
@@ -104,9 +103,10 @@ int main(int argc, char** argv)
     //         <<BeamUnities::ChipChn2RowCol(22,54,vmaps).first<<"\t"
     //         <<BeamUnities::ChipChn2RowCol(22,54,vmaps).second<<std::endl;
     
-    auto gensim = new GenSimData(500);
-    gensim->GenTracks("e-",2.7e+9,20.);
-    gensim->WritePixelTPCdata("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/test/GenMCdata_test01.root",GlobalMaps);
+    auto gensim = new GenSimData(2);
+    //gensim->EnableDebugging();
+    gensim->GenTracks("e-",5e+9,40.);
+    //gensim->WritePixelTPCdata("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/test/GenMCdata_test03.root");
 
     auto myc = new TCanvas("myc","myc",600,600);
     myc->Divide(2,1);
@@ -126,42 +126,43 @@ int main(int argc, char** argv)
     auto htrkxy1 = mat10x300_1->Matrix2HistReadout();
     htrkxy1->Draw("COL Z");
 
+#if 1
     //read MC data
-    auto MCfile = TFile::Open("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/test/GenMCdata_test01.root");
-    auto MCtr = dynamic_cast<TTree*>(MCfile->Get("PixTPCdata"));
-    auto pixeltpcdata = new PixelTPCdata(__NumChip__);
-    MCtr->SetBranchAddress("pixelTPCdata",&pixeltpcdata);
-    
-    auto Matrix10x300_MC = new PixelMatrix; 
+    //auto MCfile = TFile::Open("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/test/GenMCdata_test03.root");
+    //auto MCtr = dynamic_cast<TTree*>(MCfile->Get("PixTPCdata"));
+    //auto pixeltpcdata = new PixelTPCdata(__NumChip__);
+    //MCtr->SetBranchAddress("pixelTPCdata",&pixeltpcdata);
+    //
+    //auto Matrix10x300_MC = new PixelMatrix; 
 
+    //auto cc1 = new TCanvas("cc1","cc1",600,600);
+    //cc1->Divide(2,1);
+    //cc1->cd(1);
+    //gPad->SetLogz();
+    //MCtr->GetEntry(0);
+    //Matrix10x300_MC->PixelTPCdata2PixelMatrix(pixeltpcdata);
+    //auto htrkxy_mc1 = Matrix10x300_MC->Matrix2HistReadout();
+    //htrkxy_mc1->Draw("COL Z");
 
-    auto cc1 = new TCanvas("cc1","cc1",600,600);
-    cc1->Divide(2,1);
-    cc1->cd(1);
-    gPad->SetLogz();
-    MCtr->GetEntry(0);
-    Matrix10x300_MC->PixelTPCdata2PixelMatrix(pixeltpcdata);
-    auto htrkxy_mc1 = Matrix10x300_MC->Matrix2HistReadout();
-    htrkxy_mc1->Draw("COL Z");
+    //cc1->cd(2);
+    //gPad->SetLogz();
+    //MCtr->GetEntry(1);
+    //Matrix10x300_MC->Zero();
+    //Matrix10x300_MC->PixelTPCdata2PixelMatrix(pixeltpcdata);
+    //auto htrkxy_mc2 = Matrix10x300_MC->Matrix2HistReadout();
+    //htrkxy_mc2->Draw("COL Z");
 
-    cc1->cd(2);
-    gPad->SetLogz();
-    MCtr->GetEntry(1);
-    Matrix10x300_MC->Zero();
-    Matrix10x300_MC->PixelTPCdata2PixelMatrix(pixeltpcdata);
-    auto htrkxy_mc2 = Matrix10x300_MC->Matrix2HistReadout();
-    htrkxy_mc2->Draw("COL Z");
-
-    auto Canvasfile = new TFile("../test/Canvasfile.root","RECREATE");
+    auto Canvasfile = new TFile("../test/Canvasfile_Z40cm.root","RECREATE");
     Canvasfile->cd();
     myc->Write();
-    cc1->Write();
+    //cc1->Write();
     Canvasfile->Close();
+#endif
     //auto mat300x10 = TMatrixDSparse(TMatrixDSparse::kTransposed,*mat10x300);
     //mat300x10.Draw("COL Z");
 
     delete gensim;
     std::printf("--------------------> Code end! \n");
-    app.Run(kTRUE);
+    //app.Run(kTRUE);
     return 0;
 }

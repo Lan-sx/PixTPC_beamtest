@@ -139,3 +139,24 @@ std::pair<double,double> BeamUnities::RowColIdx2Position(std::pair<int,int> rowc
 
     return BeamUnities::RowColIdx2Position(rowid,colid);
 }
+
+void BeamUnities::DFS_algo(int row, int col, PixelMatrix &matrix, std::set<std::pair<int, int>> &cluster, std::vector<std::vector<bool>> &visited,bool eightdirec) 
+{
+    visited[row][col] = true;
+    cluster.insert({row, col});
+    
+    int iidirect = 0;
+    for (const auto &dir : directions8) {
+        int newRow = row + dir[0];
+        int newCol = col + dir[1];
+         
+        //check boundary conditions
+        if (newRow >= 0 && newRow < matrix.GetNrows() && newCol >= 0 && newCol < matrix.GetNcols()) {
+            if (!visited[newRow][newCol] && matrix[newRow][newCol] != 0) {
+                DFS_algo(newRow, newCol, matrix, cluster, visited);
+            }
+        }
+    }
+
+}
+

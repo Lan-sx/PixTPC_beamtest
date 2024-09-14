@@ -15,9 +15,13 @@
 #include <fstream>
 #include <sstream>
 #include <map>
+#include <set>
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+
+//ROOT CERN
+#include "PixelMatrix.h"
 
 //global pars
 constexpr int  __ROW__=10;
@@ -73,6 +77,11 @@ std::pair<int,int> Position2RowCol(std::pair<double,double> positionpair);
 // @param int col, col index
 std::pair<double,double> RowColIdx2Position(int row, int col);
 std::pair<double,double> RowColIdx2Position(std::pair<int,int> rowcolpair);
+
+constexpr int directions8[8][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1},
+                                   {1, 1}, {1, -1}, {-1,-1}, {-1,1}};
+
+void DFS_algo(int row, int col, PixelMatrix &matrix, std::set<std::pair<int, int>> &cluster, std::vector<std::vector<bool>> &visited,bool eightdirec=false);
 
 }
 
