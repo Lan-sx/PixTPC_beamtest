@@ -145,18 +145,50 @@ void BeamUnities::DFS_algo(int row, int col, PixelMatrix &matrix, std::set<std::
     visited[row][col] = true;
     cluster.insert({row, col});
     
-    int iidirect = 0;
-    for (const auto &dir : directions8) {
-        int newRow = row + dir[0];
-        int newCol = col + dir[1];
-         
-        //check boundary conditions
-        if (newRow >= 0 && newRow < matrix.GetNrows() && newCol >= 0 && newCol < matrix.GetNcols()) {
-            if (!visited[newRow][newCol] && matrix[newRow][newCol] != 0) {
-                DFS_algo(newRow, newCol, matrix, cluster, visited);
+    int Npoint = (!eightdirec) ? 4 : 8;
+    int counter = 0;
+    for (const auto &dir : directions8) 
+    {
+        if(counter<Npoint)
+        {
+            int newRow = row + dir[0];
+            int newCol = col + dir[1];
+            counter++;
+            //check boundary conditions
+            if (newRow >= 0 && newRow < matrix.GetNrows() && newCol >= 0 && newCol < matrix.GetNcols()) {
+                if (!visited[newRow][newCol] && matrix[newRow][newCol] != 0) 
+                {
+                    DFS_algo(newRow, newCol, matrix, cluster, visited);
+                }
+            }
+        }
+        else 
+            break;
+    }
+} 
+
+std::vector<std::set<std::pair<int,int>>> BeamUnities::PixClusterFinder(PixelMatrix& matrix, bool usingEightdirec)
+{
+    std::vector<std::set<std::pair<int, int>>> clusters;
+    int nRows = matrix.GetNrows();
+    int nCols = matrix.GetNcols();
+
+    std::vector<std::vector<bool>> visited(nRows, std::vector<bool>(nCols, false));
+
+    for (int i = 0; i < nRows; ++i) 
+    {
+        for (int j = 0; j < nCols; ++j) 
+        {
+            if (matrix[i][j] != 0 && !visited[i][j]) 
+            {
+                std::set<std::pair<int, int>> cluster;
+                DFS_algo(i, j, matrix, cluster, visited, usingEightdirec);
+                clusters.push_back(cluster);
             }
         }
     }
-
+    return clusters;
 }
+
+
 

@@ -12,6 +12,7 @@
 //std 
 #include <iostream>
 #include <vector>
+#include <array>
 #include <fstream>
 #include <sstream>
 #include <map>
@@ -47,6 +48,8 @@ constexpr double Velo_e = 8.; // [cm/us] from Magboltz
 constexpr double MaxDriftLength = 50.; // [cm]
 constexpr double MaxLengthY = 20.; // [cm]
 
+class PixelMatrix;
+
 namespace BeamUnities
 {
 // Maps Chip,Channel index <-> Row,Col index
@@ -78,10 +81,25 @@ std::pair<int,int> Position2RowCol(std::pair<double,double> positionpair);
 std::pair<double,double> RowColIdx2Position(int row, int col);
 std::pair<double,double> RowColIdx2Position(std::pair<int,int> rowcolpair);
 
-constexpr int directions8[8][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1},
-                                   {1, 1}, {1, -1}, {-1,-1}, {-1,1}};
-
+// functions and constexpr for PixelCluster Finding
+// search directions
+constexpr std::array<std::array<int,2>,8> directions8 = {
+                                                         {{1, 0}, {-1, 0}, {0, 1}, {0, -1},
+                                                          {1, 1}, {1, -1}, {-1,-1}, {-1,1}}
+                                                        };
+//DFS algo 
+//@param int row, row index
+//@param int col, col index
+//@param PixelMatrix& matrix, input matrix
+//@param std::set<std::pair<int,int>> cluster
+//@param std::vector<bool>& visited, vector to flag if the pixel visited
+//@param bool eightdirec, search 4/8 directions 
 void DFS_algo(int row, int col, PixelMatrix &matrix, std::set<std::pair<int, int>> &cluster, std::vector<std::vector<bool>> &visited,bool eightdirec=false);
+
+//PixClusterFinder, ref TimePix Reconstruction program, TimePixClusterFinderProcessor
+//@param PixelMatrix& matrix, input matrix
+//@param bool eightdirec, search 4/8 directions 
+std::vector<std::set<std::pair<int,int>>> PixClusterFinder(PixelMatrix& matrix, bool usingEightdirec=false);
 
 }
 
