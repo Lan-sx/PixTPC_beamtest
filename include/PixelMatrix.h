@@ -26,14 +26,19 @@ class PixelTPCdata;
 class PixelMatrix : public TMatrixDSparse
 {
 public:
+    //Ctors
     PixelMatrix();
-    PixelMatrix(PixelTPCdata* pixeltpcdata);
+    //PixelMatrix(PixelTPCdata* pixeltpcdata);
+    //Dtor
     ~PixelMatrix();
     
     //public Methods
+    //TODO : need to fixed
     PixelMatrix& PixelTPCdata2PixelMatrix(PixelTPCdata* pixeltpcdata, char qt='Q' );
 
+    //PixelMatrix -> PixelResponse at readout plane
     TH2Poly* Matrix2HistReadout();
+    //Get Pixel Response Hist 
     TH2Poly* GetHistReadout();
 
 protected:

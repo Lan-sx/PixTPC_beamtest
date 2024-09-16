@@ -13,10 +13,10 @@ PixelMatrix::PixelMatrix() : TMatrixDSparse(__ROW__,__COL__) , fPixelTPCdata(nul
 {
 }
 
-PixelMatrix::PixelMatrix(PixelTPCdata* pixeltpcdata) : TMatrixDSparse(__ROW__,__COL__),
-                                                        fPixelTPCdata(nullptr), fHistreadout(nullptr)
-{
-}
+//PixelMatrix::PixelMatrix(PixelTPCdata* pixeltpcdata) : TMatrixDSparse(__ROW__,__COL__),
+//                                                        fPixelTPCdata(nullptr), fHistreadout(nullptr)
+//{
+//}
 
 PixelMatrix::~PixelMatrix()
 {
