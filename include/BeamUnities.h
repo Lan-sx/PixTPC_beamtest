@@ -47,6 +47,11 @@ constexpr double Velo_e = 8.; // [cm/us] from Magboltz
 //Simulation Pars for MC data
 constexpr double MaxDriftLength = 50.; // [cm]
 constexpr double MaxLengthY = 20.; // [cm]
+                                   
+//Colors array for visualization
+constexpr int ColorArray[9] = {kBlack,kBlue+1,kPink,
+                               kViolet+7,kOrange+8,kGreen,
+                               kRed,kRed+2,kYellow-3}; 
 
 class PixelMatrix;
 
