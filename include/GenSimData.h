@@ -12,6 +12,7 @@
 #ifndef __GenSimData_H__
 #define __GenSimData_H__ 1
 //std
+#include <iostream>
 #include <vector>
 #include <memory>
 
@@ -60,13 +61,16 @@ protected:
     void InitGasCmpSensor();
 
 private:
-    int fNevts;
+    bool fUsingPixNoiseMaps; // Is using noise maps for all pixels
+    int fNevts;              // Number of tracks/events
+    // vectors to save all pixels' Q,T info
     std::vector<std::shared_ptr<PixelMatrix>> fvecMat10x300Q;
     std::vector<std::shared_ptr<PixelMatrix>> fvecMat10x300T;
-
+    // Garfield++ pointers
     Garfield::MediumMagboltz* fGas;
     Garfield::ComponentConstant* fCmp;
     Garfield::Sensor* fSensor;
+    // TODO, pointers for debugging...
     TGraph* fTrkProjxy;
     TH2D* fPixelResponse;
 };

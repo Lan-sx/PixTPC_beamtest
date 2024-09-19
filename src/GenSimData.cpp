@@ -8,10 +8,13 @@
  * ******************************************************************/
 #include "GenSimData.h"
 
-
-GenSimData::GenSimData(int Nevts) : fNevts(Nevts),fGas(nullptr), fCmp(nullptr), fSensor(nullptr),
+GenSimData::GenSimData(int Nevts) : fUsingPixNoiseMaps(false),fNevts(Nevts),fGas(nullptr), fCmp(nullptr), fSensor(nullptr),
                                     fTrkProjxy(nullptr),fPixelResponse(nullptr)
 {
+    if(!fUsingPixNoiseMaps)
+        std::printf("$GenSimData: Using default noise map for all pixels\n");
+    else
+        std::printf("$GenSimData: External noise map needed~\n");
     //this->EnableDebugging();        
 }
 
@@ -116,7 +119,7 @@ void GenSimData::GenTracks(std::string particleName,double Mom, double DriftLeng
         fvecMat10x300T.push_back(Mat10x300T_i);
         //End of a Track
     }
-
+    delete fpolya;
     std::printf("=============> End of GenTracks! \n");
 }
 
@@ -131,14 +134,15 @@ std::shared_ptr<PixelMatrix> GenSimData::GetPixelMatrix(int i)
 
 void GenSimData::WritePixelTPCdata(std::string filename)
 {
-    //TODO using unique_ptr ...
+    //Save MC data
     auto outfile = std::make_unique<TFile>(filename.data(),"RECREATE");
     outfile->cd();
     auto tr_out = new TTree("PixTPCdata","tpc channel data"); 
         
     auto pixeltpcdata = new PixelTPCdata(__NumChip__);
     tr_out->Branch("pixelTPCdata",&pixeltpcdata);
-
+    
+    //start save MC data 
     for(size_t itrk=0; itrk < fNevts; ++itrk)
     {
         pixeltpcdata->SetTiggleID(itrk);
@@ -160,8 +164,22 @@ void GenSimData::WritePixelTPCdata(std::string filename)
                 const int icol = colIdx[idx];
                 auto chipchnpair = BeamUnities::RowColIdx2ChipChn(irow,icol,GlobalMaps);
                 auto pixelQ = (*mat10x300Q_i)(irow,icol);
+                //TODO pixelT info update... T fluctuation in amp gap and unit 
                 auto pixelT = (*mat10x300T_i)(irow,icol);
-                (*pixeltpcdata)(chipchnpair.first,chipchnpair.second).push_back(std::make_pair(pixelT,pixelQ));
+                // Add electronic noise and NumOfe_cut for all pixels
+                if(!fUsingPixNoiseMaps)
+                {
+                    //using default settings, all pixels are same
+                    auto pixelBaselineQ = gRandom->Gaus(Mean_Pixbaseline,Sigma_Pix);
+                    auto pixelQ_withNoise = pixelBaselineQ + gRandom->Gaus(pixelQ,Sigma_electronics*pixelQ);
+                    //applying number of electrons cut for all pixels
+                    if(pixelQ_withNoise > NumOfe_cut)
+                        (*pixeltpcdata)(chipchnpair.first,chipchnpair.second).push_back(std::make_pair(pixelT,pixelQ_withNoise));
+                }
+                else
+                {
+                    //TODO, creating noise maps for all pixels
+                }
             } 
         }// end of sparse matrix
         tr_out->Fill();
