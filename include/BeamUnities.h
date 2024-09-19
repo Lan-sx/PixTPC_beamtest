@@ -47,7 +47,11 @@ constexpr double Velo_e = 8.; // [cm/us] from Magboltz
 //Simulation Pars for MC data
 constexpr double MaxDriftLength = 50.; // [cm]
 constexpr double MaxLengthY = 20.; // [cm]
-                                   
+constexpr double Mean_Pixbaseline = 0.; // default, mean baseline of all pixels are set to 0 e- 
+constexpr double Sigma_Pix = 30.; // default, sigma of all pixels are set to 30 e- (fluctuation of baseline)
+constexpr double Sigma_electronics = 0.035; // default, electronics noise (3.5%) for all pixels                
+constexpr int NumOfe_cut = 300;   // The pixel is actived if NumOf e- > 300
+
 //Colors array for visualization
 constexpr int ColorArray[9] = {kBlack,kBlue+1,kPink,
                                kViolet+7,kOrange+8,kGreen,
