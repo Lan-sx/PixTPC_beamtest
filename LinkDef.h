@@ -7,6 +7,7 @@
  *                    for ROOT I/O, generate dict
  * Update           : 2024-07-05 21:02: created
  * ******************************************************************/
+#include "PixelTPCdata.h"
 #ifdef __CLING__
 
 #pragma link off all globals;
@@ -14,6 +15,6 @@
 #pragma link off all functions;
 
 #pragma link C++ nestedclasses;
-#pragma link C++ class PixelTPCdata;
+#pragma link C++ class PixelTPCdata+;
 
 #endif

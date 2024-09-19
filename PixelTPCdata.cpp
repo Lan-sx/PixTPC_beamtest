@@ -10,9 +10,15 @@
 
 #include "PixelTPCdata.h"
 
+ClassImp(PixelTPCdata)
+
 PixelTPCdata::PixelTPCdata(int NumofChips)
 {
     fTestdata.resize(NumofChips);
+    for(int i=0;i<NumofChips;++i)
+    {
+        fTestdata.at(i).resize(__NumChn__);
+    }
 }
 
 PixelTPCdata& PixelTPCdata::SetTiggleID(int triggleid)
@@ -30,6 +36,11 @@ void PixelTPCdata::ClearPixelTPCdata(int NumofChips)
 {
     fTestdata.clear();
     fTestdata.resize(NumofChips);
+    for(int i=0;i<NumofChips;++i)
+    {
+        fTestdata.at(i).resize(__NumChn__);
+    }
+    //std::printf("=======================Debug Print!!! ClearPixelTPCdata()!\n");
 }
 
 Array128Chns & PixelTPCdata::Getdata_I  (int chipid)

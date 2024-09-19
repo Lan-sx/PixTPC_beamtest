@@ -20,9 +20,13 @@
 //ROOT CERN
 #include "TObject.h"
 
+//User 
+#include "BeamUnities.h"
+
 using PairQT= std::pair<double,double>;            // TYPE3
 using VecSingleChn = std::vector<PairQT>;          // TYPE2 
-using Array128Chns = std::array<VecSingleChn,128>; // TYPE1
+//using Array128Chns = std::array<VecSingleChn,128>; // TYPE1
+using Array128Chns = std::vector<VecSingleChn>; // TYPE1
 
 class PixelTPCdata : public TObject
 {
@@ -45,6 +49,9 @@ private:
     //1. TimeStamp 
     //2. Flags etc
     //sub collections
+
+    ClassDef(PixelTPCdata,1);
+
 public:
     PixelTPCdata(int NumofChips);
     ~PixelTPCdata() {};
@@ -63,7 +70,6 @@ public:
 
     void ClearPixelTPCdata(int NumofChips);
 
-    ClassDef(PixelTPCdata,1);
 
 };
 
