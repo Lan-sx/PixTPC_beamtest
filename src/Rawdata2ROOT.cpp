@@ -46,6 +46,7 @@ bool Rawdata2ROOT::DoUnpackage()
     PairQT tmpPairqt;
     VecSingleChn tmpVecSingleChn;
     Array128Chns tmpArr128Chns;
+    //tmpArr128Chns.resize(__NumChn__);
 
     for(size_t ii=1; ii<vheaderPos.size();++ii)
     {
@@ -140,7 +141,9 @@ bool Rawdata2ROOT::DoUnpackage()
 
                     INDEX = INDEX+3+28*evt_num;
                     // fill std::array<TYPE2,128>
-                    tmpArr128Chns.at(chn) = tmpVecSingleChn;
+                    //std::cout<<"================> Degbug Print "<<tmpArr128Chns.size()<<std::endl;
+                    //tmpArr128Chns.at(chn) = tmpVecSingleChn;
+                    tmpArr128Chns.push_back(tmpVecSingleChn);
                     tmpVecSingleChn.clear();
                 }
                 //cout<<evt_flag<<"\t"<<evt_num<<endl;
@@ -149,6 +152,7 @@ bool Rawdata2ROOT::DoUnpackage()
 
             // fill std::vector<TYPE1>
             fPixtpcdata->FillPixelTPCdata(tmpArr128Chns,0);
+            tmpArr128Chns.clear();
             tree->Fill();
             fPixtpcdata->ClearPixelTPCdata(1);
             vld_frame++;
