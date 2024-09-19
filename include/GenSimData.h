@@ -52,8 +52,8 @@ public:
     void GenTracks(std::string particleName="e-",double Mom=5e+9,double DriftLength=5.);
     //Save tracks data to PixelTPCdata
     void WritePixelTPCdata(std::string filename);
-    
-    std::shared_ptr<PixelMatrix> GetPixelMatrix(int i);
+    // Get i-th PixelMatrix response, without noise and cuts
+    std::shared_ptr<PixelMatrix> GetPixelMatrix_withoutNoise(int i);
     TGraph* GetProjTrk() { return fTrkProjxy; }
     TH2D* GetPixelResponse() { return fPixelResponse; }
 

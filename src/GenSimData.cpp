@@ -123,7 +123,7 @@ void GenSimData::GenTracks(std::string particleName,double Mom, double DriftLeng
     std::printf("=============> End of GenTracks! \n");
 }
 
-std::shared_ptr<PixelMatrix> GenSimData::GetPixelMatrix(int i)
+std::shared_ptr<PixelMatrix> GenSimData::GetPixelMatrix_withoutNoise(int i)
 {
     //std::printf("========> Test Get!\n");
     if(i < 0 || i > fvecMat10x300Q.size() ) 
