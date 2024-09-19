@@ -184,6 +184,7 @@ void GenSimData::WritePixelTPCdata(std::string filename)
             } 
         }// end of sparse matrix
         tr_out->Fill();
+        //std::printf("##################=====> Debug Pirnt Fill 0\n");
         pixeltpcdata->ClearPixelTPCdata(__NumChip__);
     }// end of tracks
     
