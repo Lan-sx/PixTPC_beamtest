@@ -120,6 +120,7 @@ void GenSimData::GenTracks(std::string particleName,double Mom, double DriftLeng
         //End of a Track
     }
     delete fpolya;
+    delete fsigmaTvsZ;
     std::printf("=============> End of GenTracks! \n");
 }
 
