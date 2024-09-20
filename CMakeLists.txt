@@ -28,23 +28,26 @@ find_package(ROOT REQUIRED COMPONENTS  RIO Hist Tree Net  Spectrum)
 include(${ROOT_USE_FILE})
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/include)
-include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/dataModel)
 
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cpp)
-file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h)
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/dataModel/*.cpp)
+file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h ${PROJECT_SOURCE_DIR}/dataModel/*.h)
 
 include_directories(${CMAKE_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
 add_definitions(${ROOT_CXX_FLAGS})
 
-ROOT_GENERATE_DICTIONARY(PixelTPCdata_dict PixelTPCdata.h MODULE PixelTPCdata LINKDEF LinkDef.h)
+ROOT_GENERATE_DICTIONARY(PixelTPCdata_dict ${PROJECT_SOURCE_DIR}/dataModel/PixelTPCdata.h 
+                                           MODULE PixelTPCdata 
+                                           LINKDEF ${PROJECT_SOURCE_DIR}/dataModel/LinkDef.h)
 
 add_library(PixelTPCdata SHARED
-            ${PROJECT_SOURCE_DIR}/PixelTPCdata.cpp
+            ${PROJECT_SOURCE_DIR}/dataModel/PixelTPCdata.cpp
             PixelTPCdata_dict)
 
 target_link_libraries(PixelTPCdata PUBLIC ${ROOT_LIBRARIES} Garfield::Garfield)
 
-add_executable(${PROJECT_NAME} mainPixTPC.cpp PixelTPCdata.h PixelTPCdata.cpp ${sources} ${headers})
+#add_executable(${PROJECT_NAME} mainPixTPC.cpp PixelTPCdata.h PixelTPCdata.cpp ${sources} ${headers})
+add_executable(${PROJECT_NAME} mainPixTPC.cpp  ${sources} ${headers})
 #target_link_libraries(${PROJECT_NAME} Garfield::Garfield ${ROOT_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} PixelTPCdata ${ROOT_LIBRARIES})
 #target_link_libraries(${PROJECT_NAME} ${ROOT_LIBRARIES})
