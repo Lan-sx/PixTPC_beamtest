@@ -22,6 +22,7 @@ GenSimData::~GenSimData()
 { 
     fvecMat10x300Q.clear();
     fvecMat10x300T.clear();
+    fvecTrackdatas.clear();
     delete fGas;
     delete fCmp;
     delete fSensor;
@@ -74,17 +75,23 @@ void GenSimData::GenTracks(std::string particleName,double Mom, double DriftLeng
             std::printf("=====>New Track%d %s \n",itrk,particleName.c_str());
 
         this->NewTrack(0.225,0.,DriftLength,0.,0.,1.,0); 
-
+        
+        //Matrixes for saving readout pixels info
         auto Mat10x300Q_i = std::make_shared<PixelMatrix>();
         auto Mat10x300T_i = std::make_shared<PixelMatrix>();
         Mat10x300Q_i->ResizeTo(__ROW__,__COL__);
         Mat10x300T_i->ResizeTo(__ROW__,__COL__);
+        //Vectors for saving MC track data
+        std::vector<FourVector> vecClusters;
 
         double xc(0.),yc(0.),zc(0.),tc(0.),ec(0.),extra(0.);
         int nc(0);
         //Loop all clusters and electron in each cluster
         while(this->GetCluster(xc,yc,zc,tc,nc,ec,extra))
         {
+            //push MC track/clusters data
+            ROOT::Math::XYZTVector clusterinfo(xc,yc,zc,ec);
+            vecClusters.push_back(clusterinfo);
             for(int k=0;k<nc;++k)
             {
                 double xe(0.),ye(0.),ze(0.),te(0.),ee(0.);
@@ -117,6 +124,7 @@ void GenSimData::GenTracks(std::string particleName,double Mom, double DriftLeng
         }
         fvecMat10x300Q.push_back(Mat10x300Q_i);
         fvecMat10x300T.push_back(Mat10x300T_i);
+        fvecTrackdatas.push_back(vecClusters);
         //End of a Track
     }
     delete fpolya;
@@ -139,15 +147,19 @@ void GenSimData::WritePixelTPCdata(std::string filename)
     auto outfile = std::make_unique<TFile>(filename.data(),"RECREATE");
     outfile->cd();
     auto tr_out = new TTree("PixTPCdata","tpc channel data"); 
-        
+    
+    auto mcTrackdata =  new MCTrackdata;
     auto pixeltpcdata = new PixelTPCdata(__NumChip__);
     tr_out->Branch("pixelTPCdata",&pixeltpcdata);
+    tr_out->Branch("mcTrackdata",&mcTrackdata);
     
     //start save MC data 
     for(size_t itrk=0; itrk < fNevts; ++itrk)
     {
         pixeltpcdata->SetTiggleID(itrk);
-        
+        mcTrackdata->SetTrkID(itrk);
+        //Loop std::vector<std::vector<TVector3>> fvecTrackdatas and fill mcTrackdata
+        mcTrackdata->FillClusters(fvecTrackdatas.at(itrk));
         //Loop track sparse matrix and fill pixelTPCdata
         auto mat10x300Q_i = fvecMat10x300Q.at(itrk);
         auto mat10x300T_i = fvecMat10x300T.at(itrk);
@@ -186,6 +198,7 @@ void GenSimData::WritePixelTPCdata(std::string filename)
         tr_out->Fill();
         //std::printf("##################=====> Debug Pirnt Fill 0\n");
         pixeltpcdata->ClearPixelTPCdata(__NumChip__);
+        mcTrackdata->ClearMCTrackdata();
     }// end of tracks
     
     //Write root file 

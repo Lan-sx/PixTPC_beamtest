@@ -34,6 +34,7 @@
 //Users
 #include "BeamUnities.h"
 #include "PixelTPCdata.h"
+#include "MCTrackdata.h"
 #include "PixelMatrix.h"
 
 extern std::vector<std::pair<int,int>> GlobalMaps;
@@ -63,13 +64,18 @@ protected:
 private:
     bool fUsingPixNoiseMaps; // Is using noise maps for all pixels
     int fNevts;              // Number of tracks/events
+                             
     // vectors to save all pixels' Q,T info
     std::vector<std::shared_ptr<PixelMatrix>> fvecMat10x300Q;
     std::vector<std::shared_ptr<PixelMatrix>> fvecMat10x300T;
+    // vectors to save MC track data
+    std::vector<std::vector<FourVector>> fvecTrackdatas; 
+
     // Garfield++ pointers
     Garfield::MediumMagboltz* fGas;
     Garfield::ComponentConstant* fCmp;
     Garfield::Sensor* fSensor;
+
     // TODO, pointers for debugging...
     TGraph* fTrkProjxy;
     TH2D* fPixelResponse;
