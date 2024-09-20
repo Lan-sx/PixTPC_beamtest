@@ -55,7 +55,7 @@ private:
     ClassDef(PixelTPCdata,1);
 
 public:
-    PixelTPCdata(int NumofChips);
+    PixelTPCdata(int NumofChips=24);
     ~PixelTPCdata() {};
     
     PixelTPCdata& SetTiggleID(int triggleid);
