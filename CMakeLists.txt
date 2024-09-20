@@ -23,7 +23,7 @@ if(NOT TARGET Garfield::Garfield)
 endif()
 
 
-find_package(ROOT REQUIRED COMPONENTS  RIO Hist Tree Net  Spectrum)
+find_package(ROOT REQUIRED COMPONENTS  RIO Hist Tree Net Spectrum MathCore MathMore)
 
 include(${ROOT_USE_FILE})
 include_directories(${PROJECT_SOURCE_DIR})
@@ -40,16 +40,24 @@ ROOT_GENERATE_DICTIONARY(PixelTPCdata_dict ${PROJECT_SOURCE_DIR}/dataModel/Pixel
                                            MODULE PixelTPCdata 
                                            LINKDEF ${PROJECT_SOURCE_DIR}/dataModel/LinkDef.h)
 
+ROOT_GENERATE_DICTIONARY(MCTrackdata_dict ${PROJECT_SOURCE_DIR}/dataModel/MCTrackdata.h 
+                                           MODULE MCTrackdata 
+                                           LINKDEF ${PROJECT_SOURCE_DIR}/dataModel/LinkDef.h)
 add_library(PixelTPCdata SHARED
             ${PROJECT_SOURCE_DIR}/dataModel/PixelTPCdata.cpp
             PixelTPCdata_dict)
 
+add_library(MCTrackdata SHARED
+            ${PROJECT_SOURCE_DIR}/dataModel/MCTrackdata.cpp
+            MCTrackdata_dict)
+
 target_link_libraries(PixelTPCdata PUBLIC ${ROOT_LIBRARIES} Garfield::Garfield)
+target_link_libraries(MCTrackdata  PUBLIC ${ROOT_LIBRARIES} Garfield::Garfield)
 
 #add_executable(${PROJECT_NAME} mainPixTPC.cpp PixelTPCdata.h PixelTPCdata.cpp ${sources} ${headers})
 add_executable(${PROJECT_NAME} mainPixTPC.cpp  ${sources} ${headers})
 #target_link_libraries(${PROJECT_NAME} Garfield::Garfield ${ROOT_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} PixelTPCdata ${ROOT_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PixelTPCdata MCTrackdata ${ROOT_LIBRARIES})
 #target_link_libraries(${PROJECT_NAME} ${ROOT_LIBRARIES})
 
 #target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
