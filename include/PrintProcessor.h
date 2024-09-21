@@ -23,6 +23,7 @@ class PrintProcessor : public Processor
 {
 public:
     PrintProcessor(TFile *filein, TTree *ftreein);
+    ~PrintProcessor();
 
     // Implementation of virtual functions
     virtual void InitAction()  override;

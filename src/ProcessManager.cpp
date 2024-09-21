@@ -20,6 +20,6 @@ void ProcessManager::StartProcessing()
         auto processor_i = dynamic_cast<Processor*>(this->At(i));
         processor_i->InitAction();
         processor_i->ProcessEventAction();
-        //processor_i->EndAction();
+        processor_i->EndAction();
     }
 }

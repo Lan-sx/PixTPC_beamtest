@@ -25,6 +25,15 @@ PrintProcessor::PrintProcessor(TFile *filein, TTree *treein) :
         fhQ128[i] = new TH1D(Form("hQ%d",i),Form("%d-th Chn.;Q [LSB];Cnts",i),2000,3000,5000);
     }
     fgrQ = nullptr;
+    f_histQ = new TH1D("hQ",";Q [LSB];Cnts",2000,3000,5000);
+    f_histT = new TH1D("hT",";Q [LSB];Cnts",500,2000,3000);
+}
+PrintProcessor::~PrintProcessor()
+{
+    delete f_PixTPCdata;
+    delete f_tree;
+    f_file->Close();
+    delete f_file;
 }
 
 void PrintProcessor::InitAction()
@@ -32,9 +41,6 @@ void PrintProcessor::InitAction()
     f_file->cd();
     f_PixTPCdata = new PixelTPCdata(1);
     f_tree->SetBranchAddress("pixelTPCdata",&f_PixTPCdata);
-
-    f_histQ = new TH1D("hQ",";Q [LSB];Cnts",2000,3000,5000);
-    f_histT = new TH1D("hT",";Q [LSB];Cnts",500,2000,3000);
 }
 
 void PrintProcessor::ProcessEventAction()
@@ -90,10 +96,6 @@ void PrintProcessor::ProcessEventAction()
 void PrintProcessor::EndAction()
 {
     this->DebugPrint();
-    delete f_PixTPCdata;
-    delete f_tree;
-    f_file->Close();
-    delete f_file;
 }
     
 
@@ -102,5 +104,5 @@ void PrintProcessor::DebugPrint()
     //std::cout<<"=======> "<<__ROW__<<std::endl;
     //auto vmaps = CreateChipChnToRowColMap("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/config/ChipChnMaps.csv");
     //std::cout<<"\t"<<vmaps.at(2000).ChipIdx<<"\t"<<vmaps.at(2000).ChnIdx<<std::endl;
-    std::printf("=======================> Test of %s !!!\n",this->GetProcessorName().c_str()); 
+    std::printf("=======================> This is end of %s !!!\n",this->GetProcessorName().c_str()); 
 }
