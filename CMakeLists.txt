@@ -38,11 +38,11 @@ add_definitions(${ROOT_CXX_FLAGS})
 
 ROOT_GENERATE_DICTIONARY(PixelTPCdata_dict ${PROJECT_SOURCE_DIR}/dataModel/PixelTPCdata.h 
                                            MODULE PixelTPCdata 
-                                           LINKDEF ${PROJECT_SOURCE_DIR}/dataModel/LinkDef.h)
+                                           LINKDEF ${PROJECT_SOURCE_DIR}/dataModel/LinkDef_PixelTPCdata.h)
 
 ROOT_GENERATE_DICTIONARY(MCTrackdata_dict ${PROJECT_SOURCE_DIR}/dataModel/MCTrackdata.h 
                                            MODULE MCTrackdata 
-                                           LINKDEF ${PROJECT_SOURCE_DIR}/dataModel/LinkDef.h)
+                                           LINKDEF ${PROJECT_SOURCE_DIR}/dataModel/LinkDef_MCTrackdata.h)
 add_library(PixelTPCdata SHARED
             ${PROJECT_SOURCE_DIR}/dataModel/PixelTPCdata.cpp
             PixelTPCdata_dict)
