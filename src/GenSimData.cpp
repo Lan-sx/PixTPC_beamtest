@@ -16,6 +16,30 @@ GenSimData::GenSimData(int Nevts) : fUsingPixNoiseMaps(false),fNevts(Nevts),fGas
     else
         std::printf("$GenSimData: External noise map needed~\n");
     //this->EnableDebugging();        
+    
+    fTrkInitialPos[0] = 0.225;
+    fTrkInitialPos[1] = 0.;
+    fTrkInitialPos[2] = 20.;
+    fTrkInitialDir = {0.,1.,0};
+
+    fMomentum = 5.e+9; // 5 GeV/c
+}
+
+GenSimData::GenSimData(int Nevts, double DriftLength) : fUsingPixNoiseMaps(false),fNevts(Nevts),fGas(nullptr), fCmp(nullptr), fSensor(nullptr),
+                                    fTrkProjxy(nullptr),fPixelResponse(nullptr)
+
+{
+    if(!fUsingPixNoiseMaps)
+        std::printf("$GenSimData: Using default noise map for all pixels\n");
+    else
+        std::printf("$GenSimData: External noise map needed~\n");
+    //this->EnableDebugging();        
+    fTrkInitialPos[0] = 0.225;
+    fTrkInitialPos[1] = 0.;
+    fTrkInitialPos[2] = DriftLength;
+
+    fTrkInitialDir = {0.,1.,0};
+    fMomentum = 5.e+9; // 5 GeV/c
 }
 
 GenSimData::~GenSimData()
@@ -27,6 +51,16 @@ GenSimData::~GenSimData()
     delete fCmp;
     delete fSensor;
     //delete fMat10x300;
+}
+
+void GenSimData::SetTrkInitialPosition(TVector3 &xp)
+{
+    fTrkInitialPos = xp;
+}
+
+void GenSimData::SetTrkInitialDirection(TVector3 &direction)
+{
+    fTrkInitialDir = direction;
 }
 
 void GenSimData::InitGasCmpSensor()
@@ -48,7 +82,8 @@ void GenSimData::InitGasCmpSensor()
     fSensor->AddComponent(fCmp);
 }
 
-void GenSimData::GenTracks(std::string particleName,double Mom, double DriftLength)
+
+void GenSimData::GenTracks(std::string particleName,double Mom)
 {
     //Initial General settings
     InitGasCmpSensor();
@@ -56,7 +91,8 @@ void GenSimData::GenTracks(std::string particleName,double Mom, double DriftLeng
     this->SetSensor(fSensor);
     this->SetParticle(particleName);
     this->SetMomentum(Mom);
-    
+    auto DriftLength = fTrkInitialPos.Z();
+
     // Polya dist from Yue Chang Simu.
     auto fpolya = new TF1("fpolya","[0]*pow(1+[1],1+[1])*pow(x/[2],[1])*exp(-(1+[1])*x/[2])/TMath::Gamma(1+[1])",0,10000);
     fpolya->SetParameter(0,3802);
@@ -67,14 +103,16 @@ void GenSimData::GenTracks(std::string particleName,double Mom, double DriftLeng
     auto fsigmaTvsZ = new TF1("fsigmaTvsZ","0.0001167+0.003273*sqrt(x)",0.,300);
     auto sigmaT = fsigmaTvsZ->Eval(DriftLength); // [us]
     auto Tdrift = DriftLength/Velo_e;            // [us] 
-
+    
+    fTrkInitialPos[2] = DriftLength;
     //New Track
     for(int itrk=0; itrk<fNevts; ++itrk)
     {
         if(itrk%100==0)
             std::printf("=====>New Track%d %s \n",itrk,particleName.c_str());
 
-        this->NewTrack(0.225,0.,DriftLength,0.,0.,1.,0); 
+        this->NewTrack(fTrkInitialPos[0],fTrkInitialPos[1],fTrkInitialPos[2],0.,
+                       fTrkInitialDir[0],fTrkInitialDir[1],fTrkInitialDir[2]); 
         
         //Matrixes for saving readout pixels info
         auto Mat10x300Q_i = std::make_shared<PixelMatrix>();

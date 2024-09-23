@@ -24,6 +24,7 @@
 #include "TPolyLine3D.h"
 #include "TGraph.h"
 #include "TH2D.h"
+#include "TVector3.h"
 
 //Garfield++
 #include "Garfield/TrackHeed.hh"
@@ -45,12 +46,15 @@ class GenSimData : public Garfield::TrackHeed
 {
 public:
     GenSimData(int Nevts=1);
+    GenSimData(int Nevts, double DriftLength);
     ~GenSimData();
 
-    //Set method
+    //Set methods
+    void SetTrkInitialPosition(TVector3 &xp);
+    void SetTrkInitialDirection(TVector3 &direction);
     
     //Generate tracks
-    void GenTracks(std::string particleName="e-",double Mom=5e+9,double DriftLength=5.);
+    void GenTracks(std::string particleName="e-",double Mom=5e+9);
     //Save tracks data to PixelTPCdata
     void WritePixelTPCdata(std::string filename);
     // Get i-th PixelMatrix response, without noise and cuts
@@ -64,7 +68,10 @@ protected:
 private:
     bool fUsingPixNoiseMaps; // Is using noise maps for all pixels
     int fNevts;              // Number of tracks/events
-                             
+    double fMomentum;        // Momentum of particle [eV]
+    TVector3 fTrkInitialPos; // Track Initial Position 
+    TVector3 fTrkInitialDir; // Track Initial Direction
+
     // vectors to save all pixels' Q,T info
     std::vector<std::shared_ptr<PixelMatrix>> fvecMat10x300Q;
     std::vector<std::shared_ptr<PixelMatrix>> fvecMat10x300T;
