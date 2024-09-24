@@ -18,12 +18,16 @@ set(CMAKE_CXX_FLAGS)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 
+#Garfield++ CERN
 if(NOT TARGET Garfield::Garfield)
     find_package(Garfield REQUIRED)
 endif()
 
-
+#ROOT CERN
 find_package(ROOT REQUIRED COMPONENTS  RIO Hist Tree Net Spectrum MathCore MathMore)
+
+#nlohmann 
+find_package(nlohmann_json REQUIRED)
 
 include(${ROOT_USE_FILE})
 include_directories(${PROJECT_SOURCE_DIR})
@@ -57,7 +61,7 @@ target_link_libraries(MCTrackdata  PUBLIC ${ROOT_LIBRARIES} Garfield::Garfield)
 #add_executable(${PROJECT_NAME} mainPixTPC.cpp PixelTPCdata.h PixelTPCdata.cpp ${sources} ${headers})
 add_executable(${PROJECT_NAME} mainPixTPC.cpp  ${sources} ${headers})
 #target_link_libraries(${PROJECT_NAME} Garfield::Garfield ${ROOT_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} PixelTPCdata MCTrackdata ${ROOT_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PixelTPCdata MCTrackdata nlohmann_json::nlohmann_json ${ROOT_LIBRARIES})
 #target_link_libraries(${PROJECT_NAME} ${ROOT_LIBRARIES})
 
 #target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
