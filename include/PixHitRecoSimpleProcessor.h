@@ -11,6 +11,7 @@
 //std
 #include <iostream>
 #include <string>
+#include <numeric>
 
 //ROOT
 #include "TFile.h"
@@ -36,6 +37,9 @@ public:
     virtual void EndAction() override;
     
     virtual void DebugPrint() override;
+    
+protected:
+    //void 
 
 private:
     //pointers for I/O
