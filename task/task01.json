@@ -1,0 +1,15 @@
+{
+    "Comments"   : "Generate MC data",
+    "Tasktype"   : 1,
+    "Outputfile" : "dgasghah",
+    "GenSimDataParsList" : 
+    {
+        "Isdebug": true,
+        "Nevts": 5,
+        "Particle"   : "e-",
+        "Momentum"   : 5.0e+9,
+        "MomentumReso": 0.001,
+        "InitialPos" : [0.21,0.0,20.0],
+        "InitialDir" : [0,1,0]
+    }
+}
