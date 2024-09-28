@@ -233,11 +233,11 @@ int main(int argc, char** argv)
             CEPCPixtpcRunManager->CEPCPixtpcRun();
         } catch (const std::exception& e)
         {
-            cerr<<"Error! "<<e.what()<<endl;
+            PixTPCLog(PIXtpcERROR,e.what());
         }
     }
     else{
-        std::printf("Error! uncorrected input!\n");
+        PixTPCLog(PIXtpcINFO,"uncorrected input paras");
         return -1;
     }
     
