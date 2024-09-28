@@ -51,7 +51,8 @@ int ProcessManager::CEPCPixtpcRun()
             std::printf("TPC hits reconstruction!\n");
             break;
         default:
-            std::printf("Dummy task!\n");
+            this->PrintUsage();
+            PixTPCLog(PIXtpcINFO,"Dummy task!");
     }
 
     std::printf("> End of Task:%s\n",TaskComments.data());
@@ -103,6 +104,15 @@ void ProcessManager::StartGenMCdata()
     {
         throw std::runtime_error("Error! GenSimDtaParsList needed in task json file");
     }
+}
+
+void ProcessManager::PrintUsage()
+{
+    std::printf("========================================\n");
+    std::printf("Tasktype: [0], Raw data to ROOT         \n");
+    std::printf("Tasktype: [1], generate MC data         \n");
+    std::printf("Tasktype: [2], TPC hits reconstruction  \n");
+    std::printf("========================================\n");
 }
 
 void ProcessManager::AddProcessor(Processor* processor)

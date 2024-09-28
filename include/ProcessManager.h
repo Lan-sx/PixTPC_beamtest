@@ -26,9 +26,10 @@
 
 using PixJson = nlohmann::json;
 
+//define namespace for json parser
 namespace TaskConfigStruct
 {
-
+//structure for Generate simulation data
 struct GenSimDataParsList
 {
     bool Isdebug;
@@ -69,15 +70,13 @@ public:
 protected:
 
     void StartGenMCdata();
-
+    
+    void PrintUsage();
 
 private:
     std::string fTaskjsonfile;
     PixJson fPixJsonParser;
 };
-
-
-
 
 
 #endif
