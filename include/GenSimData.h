@@ -38,6 +38,7 @@
 #include "MCTrackdata.h"
 #include "PixelMatrix.h"
 
+// extern global var: mapping chip chn <->  (row,col) pair
 extern std::vector<std::pair<int,int>> GlobalMaps;
 
 class PixelMatrix;
@@ -50,10 +51,15 @@ public:
     ~GenSimData();
 
     //Set methods
+    inline void SetParticle(std::string particle);
+    inline void SetTrkMomentums(double p, double preso=0.);
     void SetTrkInitialPosition(TVector3 &xp);
     void SetTrkInitialDirection(TVector3 &direction);
     
     //Generate tracks
+    //used in ProcessManager 
+    void GenTracksFromJson();
+    //used for testing
     void GenTracks(std::string particleName="e-",double Mom=5e+9);
     //Save tracks data to PixelTPCdata
     void WritePixelTPCdata(std::string filename);
@@ -69,6 +75,8 @@ private:
     bool fUsingPixNoiseMaps; // Is using noise maps for all pixels
     int fNevts;              // Number of tracks/events
     double fMomentum;        // Momentum of particle [eV]
+    double fMomentumReso;    // Momentum resolution of particle 
+    std::string fParticle;   // Particle Name 
     TVector3 fTrkInitialPos; // Track Initial Position 
     TVector3 fTrkInitialDir; // Track Initial Direction
 
@@ -87,5 +95,16 @@ private:
     TGraph* fTrkProjxy;
     TH2D* fPixelResponse;
 };
+
+inline void GenSimData::SetParticle(std::string particle)
+{
+    fParticle = particle;
+}
+
+inline void GenSimData::SetTrkMomentums(double p, double preso)
+{
+    fMomentum = p;
+    fMomentumReso = preso;
+}
 
 #endif

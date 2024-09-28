@@ -17,12 +17,14 @@ GenSimData::GenSimData(int Nevts) : fUsingPixNoiseMaps(false),fNevts(Nevts),fGas
         std::printf("$GenSimData: External noise map needed~\n");
     //this->EnableDebugging();        
     
+    fParticle = "e-";
     fTrkInitialPos[0] = 0.225;
     fTrkInitialPos[1] = 0.;
     fTrkInitialPos[2] = 20.;
     fTrkInitialDir = {0.,1.,0};
 
     fMomentum = 5.e+9; // 5 GeV/c
+    fMomentumReso = 0.001;
 }
 
 GenSimData::GenSimData(int Nevts, double DriftLength) : fUsingPixNoiseMaps(false),fNevts(Nevts),fGas(nullptr), fCmp(nullptr), fSensor(nullptr),
@@ -34,12 +36,14 @@ GenSimData::GenSimData(int Nevts, double DriftLength) : fUsingPixNoiseMaps(false
     else
         std::printf("$GenSimData: External noise map needed~\n");
     //this->EnableDebugging();        
+    fParticle = "e-";
     fTrkInitialPos[0] = 0.225;
     fTrkInitialPos[1] = 0.;
     fTrkInitialPos[2] = DriftLength;
 
     fTrkInitialDir = {0.,1.,0};
     fMomentum = 5.e+9; // 5 GeV/c
+    fMomentumReso =0.001; 
 }
 
 GenSimData::~GenSimData()
@@ -82,6 +86,10 @@ void GenSimData::InitGasCmpSensor()
     fSensor->AddComponent(fCmp);
 }
 
+void GenSimData::GenTracksFromJson()
+{
+    GenTracks(fParticle,fMomentum);
+}
 
 void GenSimData::GenTracks(std::string particleName,double Mom)
 {
@@ -90,7 +98,7 @@ void GenSimData::GenTracks(std::string particleName,double Mom)
     //Initial TrackHeed
     this->SetSensor(fSensor);
     this->SetParticle(particleName);
-    this->SetMomentum(Mom);
+    //this->SetMomentum(Mom);
     auto DriftLength = fTrkInitialPos.Z();
 
     // Polya dist from Yue Chang Simu.
@@ -110,6 +118,9 @@ void GenSimData::GenTracks(std::string particleName,double Mom)
     {
         if(itrk%100==0)
             std::printf("=====>New Track%d %s \n",itrk,particleName.c_str());
+
+        double momentumWithDispersion = gRandom->Gaus(fMomentum,fMomentum*fMomentumReso);
+        this->SetMomentum(momentumWithDispersion);
 
         this->NewTrack(fTrkInitialPos[0],fTrkInitialPos[1],fTrkInitialPos[2],0.,
                        fTrkInitialDir[0],fTrkInitialDir[1],fTrkInitialDir[2]); 
@@ -163,6 +174,7 @@ void GenSimData::GenTracks(std::string particleName,double Mom)
         fvecMat10x300Q.push_back(Mat10x300Q_i);
         fvecMat10x300T.push_back(Mat10x300T_i);
         fvecTrackdatas.push_back(vecClusters);
+        std::cout<<"=====> "<<vecClusters.size()<<std::endl;
         //End of a Track
     }
     delete fpolya;
@@ -194,6 +206,8 @@ void GenSimData::WritePixelTPCdata(std::string filename)
     //start save MC data 
     for(size_t itrk=0; itrk < fNevts; ++itrk)
     {
+        if(itrk%500==0)
+            std::printf("=====>Track%d saved!\n",int(itrk));
         pixeltpcdata->SetTiggleID(itrk);
         mcTrackdata->SetTrkID(itrk);
         //Loop std::vector<std::vector<TVector3>> fvecTrackdatas and fill mcTrackdata
