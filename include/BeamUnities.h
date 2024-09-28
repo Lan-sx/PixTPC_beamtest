@@ -52,6 +52,16 @@ constexpr double Sigma_Pix = 30.; // default, sigma of all pixels are set to 30 
 constexpr double Sigma_electronics = 0.035; // default, electronics noise (3.5%) for all pixels                
 constexpr int NumOfe_cut = 300;   // The pixel is actived if NumOf e- > 300
 
+//Define macro for Log Print
+enum LogsFlag {
+    PIXtpcINFO = 0,
+    PIXtpcERROR
+};
+
+#define PixTPCLog(flags,message) cepcPixTPClog(flags,__FILE__,__LINE__,message)
+
+void cepcPixTPClog(int flags, const std::string& file,int line,const std::string& message);
+
 //Colors array for visualization
 constexpr int ColorArray[9] = {kBlack,kBlue+1,kPink,
                                kViolet+7,kOrange+8,kGreen,
