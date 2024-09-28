@@ -49,10 +49,12 @@ struct GenSimDataParsList
 class ProcessManager : public TObjArray
 {
 public:
+    //Ctors and Dtor
     ProcessManager();
     ProcessManager(std::string taskjsonfile);
     ~ProcessManager() {}
 
+    //TaskType declare
     enum CEPCPixtpcTaskType 
     {
         Rawdata2ROOT=0,
@@ -68,13 +70,14 @@ public:
     void StartProcessing();
 
 protected:
-
-    void StartGenMCdata();
-    
+    // Default, print usage info
     void PrintUsage();
+    // Generate MC data, CEPCPixtpcTaskType: GenMCdata, 1 in json
+    void StartGenMCdata();
 
 private:
     std::string fTaskjsonfile;
+    //Nlohmann json parser
     PixJson fPixJsonParser;
 };
 
