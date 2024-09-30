@@ -1,7 +1,8 @@
 {
     "Comments"   : "Generate MC data",
     "Tasktype"   : 1,
-    "Outputfile" : "dgasghah",
+    "GlobalChipChnMaps": "/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/config/ChipChnMaps.csv",
+    "Outputfile" : "Test.root",
     "GenSimDataParsList" : 
     {
         "Isdebug": true,
