@@ -26,6 +26,9 @@
 
 using PixJson = nlohmann::json;
 
+//extern global chip chn mapping, .csv file must be provided in task.json file
+extern std::vector<std::pair<int,int>> GlobalMaps;
+
 //define namespace for json parser
 namespace TaskConfigStruct
 {
@@ -62,14 +65,18 @@ public:
         TPChitReco
     };
 
+    // test function for initial Global maps
+    inline void InitialMapsManually(std::string globalmapsfile);
     // Processor Manager 
     int CEPCPixtpcRun();
-
+    
     // TODO testing
     void AddProcessor(Processor* processor);
     void StartProcessing();
 
 protected:
+    // Initial GlobalMaps from json
+    void InitialMapsFromJson();
     // Default, print usage info
     void PrintUsage();
     // Generate MC data, CEPCPixtpcTaskType: GenMCdata, 1 in json
@@ -81,5 +88,9 @@ private:
     PixJson fPixJsonParser;
 };
 
+inline void ProcessManager::InitialMapsManually(std::string globalmapsfile)
+{
+    GlobalMaps = BeamUnities::CreateChipChnToRowColMap(globalmapsfile);
+}
 
 #endif
