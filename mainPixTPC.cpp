@@ -104,7 +104,8 @@ void test01()
 
 void test02()
 {
-    auto MCfile = TFile::Open("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/test/GenMCdata_withNoise01_new.root");
+    //auto MCfile = TFile::Open("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/test/GenMCdata_withNoise01_new.root");
+    auto MCfile = TFile::Open("/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/task/Test01.root");
     auto MCtr = dynamic_cast<TTree*>(MCfile->Get("PixTPCdata"));
     auto pixeltpcdata = new PixelTPCdata(__NumChip__);
     auto mctrackdata  = new MCTrackdata;
@@ -212,7 +213,6 @@ int main(int argc, char** argv)
 
     TApplication app("app",&Argc,Argv);
     LansxFormat::myStyle();
-    GlobalMaps = BeamUnities::CreateChipChnToRowColMap("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/config/ChipChnMaps.csv");
 
     if(argc < 2)
     {
@@ -220,10 +220,14 @@ int main(int argc, char** argv)
         auto myc = new TCanvas("myc","myc",800,600);
         myc->SetGrid();
         myc->DrawFrame(0,0,1,1,"Test;x;y");
+
+        auto CEPCPixtpcRunManager = new ProcessManager;
+        CEPCPixtpcRunManager->InitialMapsManually("/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/config/ChipChnMaps.csv");
         //FillPixelTPCdata();
         //test01();
-        //test02();
+        test02();
         //test03(std::atof(argv[2]));
+        delete CEPCPixtpcRunManager;
     }
     else if(argc==2)
     {
