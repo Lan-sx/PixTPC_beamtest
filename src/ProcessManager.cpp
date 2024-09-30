@@ -34,6 +34,7 @@ int ProcessManager::CEPCPixtpcRun()
 {
     std::string TaskComments = fPixJsonParser.at("Comments");
     int Tasktype = fPixJsonParser.at("Tasktype");
+    this->InitialMapsFromJson();
     std::printf("==============================================\n");
     std::printf("> Start a Task: %s\n",TaskComments.data());
     std::printf("==============================================\n");
@@ -57,6 +58,20 @@ int ProcessManager::CEPCPixtpcRun()
 
     std::printf("> End of Task:%s\n",TaskComments.data());
     return 0;
+}
+
+void ProcessManager::InitialMapsFromJson()
+{
+    if(fPixJsonParser.contains("GlobalChipChnMaps")) 
+    {
+        GlobalMaps = BeamUnities::CreateChipChnToRowColMap(fPixJsonParser.at("GlobalChipChnMaps"));
+    }
+    else
+    {
+        PixTPCLog(PIXtpcERROR,"No Chip Chn map file");
+        throw std::runtime_error("No Chip Chn map file in task json");
+    }
+        
 }
 
 void ProcessManager::StartGenMCdata()
