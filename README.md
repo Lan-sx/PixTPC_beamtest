@@ -10,6 +10,7 @@ Make sure you have installed:
 Then,
     ```shell
     mkdir build
+    cd build
     cmake ..
     make -j<N>
     make install
