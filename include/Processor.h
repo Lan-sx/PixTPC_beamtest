@@ -21,7 +21,7 @@
 class Processor : public TObject 
 {
 public:
-    Processor(std::string processorname);
+    Processor(std::string processorname,int processorid);
     ~Processor();
 
     //virtual functions
@@ -32,9 +32,11 @@ public:
     virtual void DebugPrint() =0;
     
     //Getters
-    std::string GetProcessorName() { return fProcessorName; }
+    std::string GetProcessorName() { return fProcessorName+std::to_string(fProcessorId); }
 
-private:
+protected:
+    //General attributes, mainly used in task json file manager
+    int fProcessorId;
     std::string fProcessorName;
 };
 
