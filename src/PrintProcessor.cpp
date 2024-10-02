@@ -16,7 +16,7 @@
 #include "PrintProcessor.h"
 
 PrintProcessor::PrintProcessor(TFile *filein, TTree *treein) : 
-                Processor("printProcessor"),f_file(filein), f_tree(treein), f_PixTPCdata(nullptr),
+                Processor("PrintProcessor",0),f_file(filein), f_tree(treein), f_PixTPCdata(nullptr),
                 f_histQ(nullptr),f_histT(nullptr)
 {
     fhQ128 = new TH1D*[128];
