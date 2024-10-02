@@ -21,7 +21,7 @@
 #include "TTree.h"
 #include "TRandom3.h"
 #include "TF1.h"
-#include "TPolyLine3D.h"
+#include "TCanvas.h"
 #include "TGraph.h"
 #include "TH2D.h"
 #include "TVector3.h"
@@ -65,6 +65,9 @@ public:
     void WritePixelTPCdata(std::string filename);
     // Get i-th PixelMatrix response, without noise and cuts
     std::shared_ptr<PixelMatrix> GetPixelMatrix_withoutNoise(int i);
+    // Show a Hist without noise, for debug
+    TCanvas* ShowPixelResponseWithoutNoise(int trkid=0);
+    //legacy
     TGraph* GetProjTrk() { return fTrkProjxy; }
     TH2D* GetPixelResponse() { return fPixelResponse; }
 
