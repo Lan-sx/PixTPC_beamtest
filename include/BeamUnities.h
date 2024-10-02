@@ -55,6 +55,7 @@ constexpr int NumOfe_cut = 300;   // The pixel is actived if NumOf e- > 300
 //Define macro for Log Print
 enum LogsFlag {
     PIXtpcINFO = 0,
+    PIXtpcDebug,
     PIXtpcERROR
 };
 
