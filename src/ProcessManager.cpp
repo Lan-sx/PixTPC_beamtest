@@ -100,6 +100,12 @@ void ProcessManager::StartGenMCdata()
         gensim->SetTrkInitialDirection(direction);
         //3. simulate tracks
         gensim->GenTracksFromJson();
+        //Show a hist without noise
+        if(configlist.Isdebug)
+        {
+            auto debugCanvas = gensim->ShowPixelResponseWithoutNoise(gRandom->Integer(configlist.Nevts));
+            debugCanvas->Draw();
+        }
         //4. save MC data 
         std::string outputfile = fPixJsonParser.at("Outputfile");
         auto npos_root = outputfile.find(".root");

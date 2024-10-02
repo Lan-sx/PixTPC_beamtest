@@ -19,6 +19,7 @@
 #include "TObject.h"
 #include "TObjArray.h"
 #include "TTree.h"
+#include "TRandom3.h"
 
 //Users
 #include "Processor.h"
