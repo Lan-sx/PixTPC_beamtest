@@ -9,7 +9,7 @@
 
 #include "Processor.h"
 
-Processor::Processor(std::string processorname,int processorid) : fProcessorName(processorname), fProcessorId(processorid)
+Processor::Processor(std::string processorname,int processorid) : fProcessorName(processorname),fIsdebug(false),fProcessorId(processorid)
 {
 }
 

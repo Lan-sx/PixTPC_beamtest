@@ -36,6 +36,7 @@ public:
 
 protected:
     //General attributes, mainly used in task json file manager
+    bool fIsdebug;
     int fProcessorId;
     std::string fProcessorName;
 };
