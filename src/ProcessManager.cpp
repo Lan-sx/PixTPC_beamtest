@@ -50,6 +50,7 @@ int ProcessManager::CEPCPixtpcRun()
             break;
         case TPChitReco:
             std::printf("TPC hits reconstruction!\n");
+            this->StartRecoPixTPChits();
             break;
         default:
             this->PrintUsage();
@@ -127,6 +128,41 @@ void ProcessManager::StartGenMCdata()
     }
 }
 
+void ProcessManager::StartRecoPixTPChits()
+{
+    //PixTPCLog(PIXtpcINFO,"Temp Print in StartRecoPixTPChits");
+    if(fPixJsonParser.contains("RecoProcessor")) 
+    {
+        auto recoprocessor = fPixJsonParser.at("RecoProcessor");
+        PixTPCLog(PIXtpcDebug,recoprocessor);
+        
+        auto recoprocessorArray = fPixJsonParser.at("RecoProcessorArray");
+        //int cnt_processor =0;
+        for(auto item : recoprocessorArray)
+        {
+            TaskConfigStruct::PixTPChitRecoParsList recoprocessor_i = item;
+            TFile* file1;
+            //if(cnt_processor==0)
+            //{
+                auto pixhitrecoprocessor = new PixHitRecoSimpleProcessor(recoprocessor_i);
+                this->AddProcessor(pixhitrecoprocessor);
+            //}
+            //cnt_processor++;
+            //std::cout<<recoprocessor_i.Processorid<<"\n"
+            //         <<recoprocessor_i.NumOfColMerge<<"\t"
+            //         <<recoprocessor_i.Inputfile<<"\n"
+            //         <<recoprocessor_i.Outputfile<<std::endl;
+        }
+        
+        this->StartProcessing();
+        
+    }
+    else 
+    {
+        throw std::runtime_error("Error! No RecoProcessor in task json file");
+    }
+}
+
 void ProcessManager::PrintUsage()
 {
     std::printf("========================================\n");
@@ -149,6 +185,7 @@ void ProcessManager::StartProcessing()
         processor_i->InitAction();
         processor_i->ProcessEventAction();
         processor_i->EndAction();
+        delete processor_i;
     }
 }
 

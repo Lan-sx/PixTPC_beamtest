@@ -23,6 +23,7 @@
 
 //Users
 #include "Processor.h"
+#include "PixHitRecoSimpleProcessor.h"
 #include "GenSimData.h"
 
 using PixJson = nlohmann::json;
@@ -45,6 +46,22 @@ struct GenSimDataParsList
     double InitialDir[3];
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(GenSimDataParsList,Isdebug,Nevts,Particle,Momentum,MomentumReso,InitialPos,InitialDir)
+};
+
+//structure for TPChitReco Simple
+struct PixTPChitRecoParsList
+{
+    bool Isdebug;
+    bool EquivalentPad;
+    int Processorid;
+    int NumOfColMerge;
+    std::string Inputfile;
+    std::string Inputbranch;
+    std::string Outputfile;
+    std::string Outputbranch;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(PixTPChitRecoParsList,Isdebug,EquivalentPad,Processorid,NumOfColMerge,
+                                   Inputfile,Inputbranch,Outputfile,Outputbranch)
 };
 
 }
@@ -82,6 +99,8 @@ protected:
     void PrintUsage();
     // Generate MC data, CEPCPixtpcTaskType: GenMCdata, 1 in json
     void StartGenMCdata();
+    // Reco PixTPC hits, CEPCPixtpcTaskType: TPChitReco, 2 in json 
+    void StartRecoPixTPChits();
 
 private:
     std::string fTaskjsonfile;
