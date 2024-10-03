@@ -13,17 +13,37 @@
 #include "TGraph.h"
 #include "Lansxlogon.h"
 
+PixHitRecoSimpleProcessor::PixHitRecoSimpleProcessor(TaskConfigStruct::PixTPChitRecoParsList recoparaslist) :
+    Processor("PixHitRecoSimpleProcessor",recoparaslist.Processorid),
+    fEquivalentPad(false),fNumOfColMerge(recoparaslist.NumOfColMerge),
+    fInputBranchName(recoparaslist.Inputbranch),
+    fOutputfileName(recoparaslist.Outputfile),fOutputBranchName(recoparaslist.Outputbranch)
+{
+    fIsdebug = recoparaslist.Isdebug;
+    fEquivalentPad = recoparaslist.EquivalentPad;
+    
+    f_file_in = TFile::Open(recoparaslist.Inputfile.data());
+    if(!f_file_in)
+        throw std::runtime_error("INPUT FILE ERROR!");
+
+    f_tree_in = dynamic_cast<TTree*>(f_file_in->Get("PixTPCdata"));
+}
+
 PixHitRecoSimpleProcessor::PixHitRecoSimpleProcessor(TFile* filein,TTree* treein) :
-    Processor("PixHitRecoSimpleProcessor"),
+    Processor("PixHitRecoSimpleProcessor",0),
+    fEquivalentPad(false),fNumOfColMerge(10),
+    fInputBranchName("pixelTPCdata"),fOutputfileName("./RecoTest.root"),fOutputBranchName("recoHitsdata"),
     f_file_in(filein),f_tree_in(treein),
-    f_file_out(nullptr), f_tree_out(nullptr),f_PixTPCdata(nullptr)
+    f_PixTPCdata(nullptr)//,f_file_out(nullptr), f_tree_out(nullptr)
 {
 }
 
 PixHitRecoSimpleProcessor::PixHitRecoSimpleProcessor(TFile* filein,std::string treeName) : 
-    Processor("PixHitRecoSimpleProcessor"), 
+    Processor("PixHitRecoSimpleProcessor",0), 
+    fEquivalentPad(false),fNumOfColMerge(10),
     f_file_in(filein),f_tree_in(nullptr),
-    f_file_out(nullptr), f_tree_out(nullptr),f_PixTPCdata(nullptr)
+    fInputBranchName("pixelTPCdata"),fOutputfileName("./RecoTest.root"),fOutputBranchName("recoHitsdata"),
+    f_PixTPCdata(nullptr)//,f_file_out(nullptr), f_tree_out(nullptr)
 {
     f_tree_in = dynamic_cast<TTree*>(f_file_in->Get(treeName.data()));
 }
@@ -42,22 +62,32 @@ void PixHitRecoSimpleProcessor::InitAction()
 {
     f_file_in->cd();
     f_PixTPCdata = new PixelTPCdata(__NumChip__);
-    f_tree_in->SetBranchAddress("pixelTPCdata",&f_PixTPCdata);
+    if(!f_tree_in->GetBranch(fInputBranchName.c_str()))
+        throw std::runtime_error("ERROR INPUT Branch Name");
+    else
+        f_tree_in->SetBranchAddress(fInputBranchName.c_str(),&f_PixTPCdata);
+
+    PixTPCLog(PIXtpcINFO,Form("%s InitAction Done!",this->GetProcessorName().c_str()));
 }
 
 void PixHitRecoSimpleProcessor::ProcessEventAction()
 {
-    //std::printf("=====> %lld\n", f_tree_in->GetEntries()) ;
-    //f_tree_in->GetEntry(0);
-
-    //std::vector<FourVector> recoHits;
     //TH1D** hxrecs = new TH1D*[30]; 
     //for(int i=0;i<30;++i)
     //    hxrecs[i] = new TH1D(Form("hxrec%d",i),";x [cm];Evts",100,-0.5,0.5);
+    if(fEquivalentPad)
+    {
+        UseEquivalentPadMethod();
+    }
+    else
+    {
+        UsePixelChargeCenterMethod();
+    }
 
+#if 0
     double x_pad_pos[5] = {0.025,0.125,0.225,0.325,0.425};
     auto hmethod1 = new TH1D("hmethod1",";x_{rec}-x_{track} [cm];Evts",200,-0.5,0.5);
-    auto hmethod2 = new TH1D("hmethod2",";x_{rec}-x_{track} [cm];Evts",200,-0.5,0.5);
+    //auto hmethod2 = new TH1D("hmethod2",";x_{rec}-x_{track} [cm];Evts",200,-0.5,0.5);
     //TH2Poly* htrkxy_mc1 = nullptr;
     //for(int i_entry=0; i_entry < f_tree_in->GetEntries(); ++i_entry)
     for(int i_entry=0; i_entry < f_tree_in->GetEntries(); ++i_entry)
@@ -93,7 +123,6 @@ void PixHitRecoSimpleProcessor::ProcessEventAction()
             if(colidx==140)
                 hmethod1->Fill(sumQXij/sumQij-0.21);
         }
-#if 0
         // Method2
         for(int kk=0;kk<30;++kk)
         {
@@ -128,10 +157,11 @@ void PixHitRecoSimpleProcessor::ProcessEventAction()
             //if(i_entry<10)
             //    std::cout<<recoHits.size()<<"\t"<<recoHits.at(kk).x()<<std::endl;
         }
-#endif
         delete Matrix10x300_MC;
         //recoHits.clear();
     }
+
+#endif
 
 #if 0
     for(int colidx =0;  colidx < __COL__; colidx=colidx+10)
@@ -185,12 +215,13 @@ void PixHitRecoSimpleProcessor::ProcessEventAction()
     //}
     //delete []hxrecs;
 
-    auto cc1 = new TCanvas("cc1","cc1",800,600);
-    cc1->SetGrid();
-    hmethod1->DrawCopy();
-    hmethod2->SetLineColor(kRed);
-    hmethod2->DrawCopy("SAMES");
-    
+    //auto cc1 = new TCanvas("cc1","cc1",800,600);
+    //cc1->SetGrid();
+    //hmethod1->DrawCopy();
+    //hmethod2->SetLineColor(kRed);
+    //hmethod2->DrawCopy("SAMES");
+    //delete hmethod1;
+    //delete hmethod2;
     //cc1->SetLogz();
     //cc1->DrawFrame(0,0.09,30,0.015,"5 GeV/#it{c} e^{-},B=1T;hit id;RMS of (x_{rec}-x_{track}) [cm]");
     //cc1->SetGrid();
@@ -205,13 +236,150 @@ void PixHitRecoSimpleProcessor::ProcessEventAction()
 
 void PixHitRecoSimpleProcessor::EndAction()
 {
-    this->DebugPrint();
+    PixTPCLog(PIXtpcINFO,Form("This is end of %s!!!",this->GetProcessorName().c_str()));
 }
 
 void PixHitRecoSimpleProcessor::DebugPrint()
 {
-    std::printf("$$$$$$$Debug Print: This is end of %s !!!\n",this->GetProcessorName().c_str()); 
+    if(fIsdebug)
+        PixTPCLog(PIXtpcDebug,Form("There are %lld entries in input file!!!",f_tree_in->GetEntries()));
 }
 
+//void PixHitRecoSimpleProcessor::InitialOutputFile()
+//{
+//     
+//}
 
+void PixHitRecoSimpleProcessor::UsePixelChargeCenterMethod()
+{
+    //Create output root file
+    auto outfile = std::make_unique<TFile>(fOutputfileName.c_str(),"RECREATE");
+    outfile->cd();
+    auto tr_out = new TTree("PixTPCdata","reco hits data");
+    auto recoHitsdata = new MCTrackdata;
+    tr_out->Branch(fOutputBranchName.c_str(),&recoHitsdata);
+    std::vector<FourVector> vRecoHits;
 
+    for(int i_entry=0; i_entry < f_tree_in->GetEntries(); ++i_entry)
+    {
+        if(i_entry%100==0)
+            std::printf("##%d tracks hits reconstructed !\n",i_entry);
+
+        f_tree_in->GetEntry(i_entry);
+
+        recoHitsdata->SetTrkID(i_entry);
+        
+        auto Matrix10x300 = new PixelMatrix; 
+        Matrix10x300->PixelTPCdata2PixelMatrix(f_PixTPCdata);
+
+        for(int colidx =0;  colidx < __COL__; colidx=colidx+fNumOfColMerge)
+        {
+            double sumQij(0.),sumQXij(0.),sumQYij(0.);
+
+            for(int colsub=0;colsub<fNumOfColMerge;++colsub)
+            {
+                int cols = colidx + colsub;
+                for(int rowidx =0; rowidx < __ROW__; ++rowidx)
+                {
+                    auto Qij = (*Matrix10x300)(rowidx,cols);
+                    if(Qij > 0. )
+                    {
+                        auto xpyp_pair = BeamUnities::RowColIdx2Position(rowidx,cols);
+                        sumQij += Qij;
+                        sumQXij += Qij * xpyp_pair.first;
+                        sumQYij += Qij * xpyp_pair.second;
+                    }
+                }
+            } // end of a hit
+            //TODO: implementation time info
+            if(sumQij>0)
+                vRecoHits.push_back({sumQXij/sumQij,sumQYij/sumQij,0.,sumQij/double(fNumOfColMerge)});
+        }// end of a track
+        //Fill tree
+        recoHitsdata->FillClusters(vRecoHits);
+        tr_out->Fill();
+        //clear hits vector
+        vRecoHits.clear();
+        recoHitsdata->ClearMCTrackdata();
+        //delete 
+        delete Matrix10x300;
+    }
+    
+    tr_out->Write();
+    delete tr_out;
+    outfile->Close();
+    
+    PixTPCLog(PIXtpcINFO,"Reco data Write Done, using 10 cols Pixel Charge center method!");
+
+}
+
+void PixHitRecoSimpleProcessor::UseEquivalentPadMethod()
+{
+    double x_pad_pos[5] = {0.025,0.125,0.225,0.325,0.425};
+    //Create output root file
+    auto outfile = std::make_unique<TFile>(fOutputfileName.c_str(),"RECREATE");
+    outfile->cd();
+    auto tr_out = new TTree("PixTPCdata","reco hits data");
+    auto recoHitsdata = new MCTrackdata;
+    tr_out->Branch(fOutputBranchName.c_str(),&recoHitsdata);
+    std::vector<FourVector> vRecoHits;
+    
+    if(__COL__%fNumOfColMerge!=0)
+        fNumOfColMerge=10;
+
+    for(int i_entry=0; i_entry < f_tree_in->GetEntries(); ++i_entry)
+    {
+        if(i_entry%100==0)
+            std::printf("##%d tracks hits reconstructed !\n",i_entry);
+
+        f_tree_in->GetEntry(i_entry);
+
+        recoHitsdata->SetTrkID(i_entry);
+
+        auto Matrix10x300 = new PixelMatrix; 
+        Matrix10x300->PixelTPCdata2PixelMatrix(f_PixTPCdata);
+
+        for(int kk=0; kk < (__COL__/fNumOfColMerge); ++kk)
+        {
+            std::array<double,5> sumQi;
+            sumQi.fill(0.);
+            double sumQXi(0.);
+
+            //row direction, merge 2 rows -> 1 mm
+            for(int ii=0;ii<5;++ii)
+            {
+                //col direction, merge fNumOfColMerge cols -> fNumOfColMerge*0.5 mm
+                for(int mm=0;mm<fNumOfColMerge;++mm)
+                {
+                    // Merge two rows Q 
+                    auto Qij_12 = (*Matrix10x300)(2*ii,kk*fNumOfColMerge+mm) + 
+                        (*Matrix10x300)(2*ii+1,kk*fNumOfColMerge+mm);
+                    sumQi[ii] += Qij_12;
+                }
+                sumQXi += sumQi[ii]*x_pad_pos[ii]; 
+            }//end of a hit
+            auto sumQhits = std::accumulate(sumQi.begin(),sumQi.end(),0.);
+            if(sumQhits>0.)
+                vRecoHits.push_back({sumQXi/sumQhits,fNumOfColMerge*0.05/2+fNumOfColMerge*0.05*kk,0.,sumQhits/double(fNumOfColMerge)});
+            else
+                vRecoHits.push_back({-0.1,fNumOfColMerge*0.05/2+fNumOfColMerge*0.05*kk,0.,sumQhits});
+        }// end of a track
+        if(fIsdebug && i_entry<10)
+            std::cout<<"DebugPrint reco yhit:"<<vRecoHits.at(0).y()<<"\t"<<vRecoHits.at(1).y()<<std::endl;
+
+        //Fill tree
+        recoHitsdata->FillClusters(vRecoHits);
+        tr_out->Fill();
+        //clear hits vector
+        vRecoHits.clear();
+        recoHitsdata->ClearMCTrackdata();
+        //delete
+        delete Matrix10x300;
+    }
+
+    tr_out->Write();
+    delete tr_out;
+    outfile->Close();
+
+    PixTPCLog(PIXtpcINFO,"Reco data Write Done, using EquivalentPad method!");
+}
