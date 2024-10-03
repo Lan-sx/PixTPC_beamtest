@@ -1,0 +1,29 @@
+{
+    "Comments"   : "Reconstruction PixelTPC Hits using simple algo",
+    "GlobalChipChnMaps": "/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/config/ChipChnMaps.csv",
+    "Tasktype"   : 2,
+    "RecoProcessor"   : "PixHitRecoSimpleProcessor",
+    "RecoProcessorArray" : 
+    [
+        {
+            "Isdebug": true,
+            "EquivalentPad": true,
+            "Processorid": 1,
+            "NumOfColMerge": 10,
+            "Inputfile"  : "/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/task/MCdata_electron_5GeV_X0.21cmZ20cm.root",
+            "Inputbranch"  : "pixelTPCdata",
+            "Outputfile" : "/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/task/Recodata_electron_5GeV_X0.21cmZ20cm_eqpad.root",
+            "Outputbranch" : "recoHitsdata"
+        },
+        {
+            "Isdebug": false,
+            "EquivalentPad": false,
+            "Processorid": 2,
+            "NumOfColMerge": 10,
+            "Inputfile"  : "/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/task/MCdata_electron_5GeV_X0.21cmZ20cm.root",
+            "Inputbranch"  : "pixelTPCdata",
+            "Outputfile" : "/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/task/Recodata_electron_5GeV_X0.21cmZ20cm_pixelQcenter.root",
+            "Outputbranch" : "recoHitsdata"
+        }
+    ]    
+}
