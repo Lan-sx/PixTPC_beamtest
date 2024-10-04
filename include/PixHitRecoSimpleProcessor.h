@@ -47,13 +47,23 @@ public:
     virtual void EndAction() override;
     
     virtual void DebugPrint() override;
+
+    //Public Methods
+    void EnableProceesorDebug() { fIsdebug = true; }
     
 protected:
     //Merge fNumOfColMerge cols to calc the Charge center
     void UsePixelChargeCenterMethod();
     //Using Equivalent 1 mm x fNumOfColMerge*0.5mm pad to calc the Charge center
     void UseEquivalentPadMethod();
+
+    //Debug vars
+    TH1D** fHistRecohitsArray;
+    void InitialHistRecohits(int numofhist);
+    //Show methods for debug
+    //TODO Show raw dE/dx distribution histogram
     
+
 private:
     //Paras used in task json file manager
     bool fEquivalentPad;
