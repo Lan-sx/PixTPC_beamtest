@@ -57,9 +57,11 @@ void test01()
     //auto tree2 = dynamic_cast<TTree*>(file2->Get("PixTPCdata"));
     //auto processor2 = new PrintProcessor(file2,tree2);
     //auto file3 = TFile::Open("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/build/GenMCdata_withNoise_Z24cm.root");
-    auto file3 = TFile::Open("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/test/MCdata_withNoise_Z24.0cm_x0.21.root");
+    //auto file3 = TFile::Open("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/test/MCdata_withNoise_Z24.0cm_x0.21.root");
+    auto file3 = TFile::Open("/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/task/MCdata_electron_5GeV_X0.21cmZ16cm.root");
     if(!file3) return;
     auto processor3 = new PixHitRecoSimpleProcessor(file3);
+    //processor3->EnableProceesorDebug();
 
     auto pm = new ProcessManager;
     //pm->AddProcessor(processor1);
@@ -98,7 +100,7 @@ void test01()
     delete processor1;
     delete processor2;
 #endif
-    delete processor3;
+    //delete processor3;
 
 }
 
@@ -189,8 +191,8 @@ int main(int argc, char** argv)
         try {
             CEPCPixtpcRunManager->InitialMapsManually("/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/config/ChipChnMaps.csv");
             //FillPixelTPCdata();
-            //test01();
-            test02();
+            test01();
+            //test02();
             //test03(std::atof(argv[2]));
             delete CEPCPixtpcRunManager;
         } catch (const std::exception& e)
