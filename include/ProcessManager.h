@@ -48,7 +48,7 @@ struct GenSimDataParsList
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(GenSimDataParsList,Isdebug,Nevts,Particle,Momentum,MomentumReso,InitialPos,InitialDir)
 };
 
-//structure for TPChitReco Simple
+//structure for TPChitReco 
 struct PixTPChitRecoParsList
 {
     bool Isdebug;
@@ -80,7 +80,8 @@ public:
     {
         Rawdata2ROOT=0,
         GenMCdata,
-        TPChitReco
+        TPChitReco,
+        TPCcalibration
     };
 
     // test function for initial Global maps

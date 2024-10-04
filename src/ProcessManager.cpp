@@ -52,6 +52,9 @@ int ProcessManager::CEPCPixtpcRun()
             std::printf("TPC hits reconstruction!\n");
             this->StartRecoPixTPChits();
             break;
+        case TPCcalibration:
+            std::printf("TPC calibration!\n");
+            break;
         default:
             this->PrintUsage();
             PixTPCLog(PIXtpcINFO,"Dummy task!");
@@ -130,30 +133,26 @@ void ProcessManager::StartGenMCdata()
 
 void ProcessManager::StartRecoPixTPChits()
 {
-    //PixTPCLog(PIXtpcINFO,"Temp Print in StartRecoPixTPChits");
     if(fPixJsonParser.contains("RecoProcessor")) 
     {
         auto recoprocessor = fPixJsonParser.at("RecoProcessor");
-        PixTPCLog(PIXtpcDebug,recoprocessor);
-        
-        auto recoprocessorArray = fPixJsonParser.at("RecoProcessorArray");
-        //int cnt_processor =0;
-        for(auto item : recoprocessorArray)
+        if(recoprocessor == "PixHitRecoSimpleProcessor") 
         {
-            TaskConfigStruct::PixTPChitRecoParsList recoprocessor_i = item;
-            TFile* file1;
-            //if(cnt_processor==0)
-            //{
+            auto recoprocessorArray = fPixJsonParser.at("RecoProcessorArray");
+
+            for(auto item : recoprocessorArray)
+            {
+                TaskConfigStruct::PixTPChitRecoParsList recoprocessor_i = item;
                 auto pixhitrecoprocessor = new PixHitRecoSimpleProcessor(recoprocessor_i);
                 this->AddProcessor(pixhitrecoprocessor);
-            //}
-            //cnt_processor++;
-            //std::cout<<recoprocessor_i.Processorid<<"\n"
-            //         <<recoprocessor_i.NumOfColMerge<<"\t"
-            //         <<recoprocessor_i.Inputfile<<"\n"
-            //         <<recoprocessor_i.Outputfile<<std::endl;
+            }
         }
-        
+        else 
+        {
+            //TODO using PixClusterSepRecoProcessor, under developing 
+        }
+
+        PixTPCLog(PIXtpcINFO,Form("There are %d processors added! ###Start Processing...",this->GetEntries()));
         this->StartProcessing();
         
     }
@@ -169,6 +168,7 @@ void ProcessManager::PrintUsage()
     std::printf("Tasktype: [0], Raw data to ROOT         \n");
     std::printf("Tasktype: [1], generate MC data         \n");
     std::printf("Tasktype: [2], TPC hits reconstruction  \n");
+    std::printf("Tasktype: [3], TPC calibration          \n");
     std::printf("========================================\n");
 }
 
