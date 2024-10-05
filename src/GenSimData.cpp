@@ -196,7 +196,7 @@ std::shared_ptr<PixelMatrix> GenSimData::GetPixelMatrix_withoutNoise(int i)
 
 TCanvas* GenSimData::ShowPixelResponseWithoutNoise(int trkid)
 {
-    // Show a Hist without noise, for debug
+    // Show a Hist without noise, used for debug
     auto myc = new TCanvas(Form("cc_histwithoutnoise%d",trkid),Form("cc_histwithoutnoise%d",trkid),300,600);
     myc->SetGrid();
 
@@ -204,6 +204,8 @@ TCanvas* GenSimData::ShowPixelResponseWithoutNoise(int trkid)
     myc->SetGrid();
     myc->SetLogz();
     auto mat10x300 = this->GetPixelMatrix_withoutNoise(trkid);
+    if(mat10x300->GetMaxMinElement().second > NumOfe_cut)
+        PixTPCLog(PIXtpcWARNING,"The min element > NumOfe_cut");
     auto htrkxy = mat10x300->Matrix2HistReadout();
     htrkxy->DrawClone("COL Z");
 
