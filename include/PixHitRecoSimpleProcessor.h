@@ -61,8 +61,9 @@ protected:
     TH1D** fHistRecohitsArray;
     void InitialHistRecohits(int numofhist);
     //Show methods for debug
+    //Plot a canvas of the first event with pixel response and reco hits
+    void ShowDebugCanvas();
     //TODO Show raw dE/dx distribution histogram
-    
 
 private:
     //Paras used in task json file manager

@@ -118,7 +118,50 @@ void PixHitRecoSimpleProcessor::ProcessEventAction()
 
 void PixHitRecoSimpleProcessor::EndAction()
 {
+    if(fIsdebug)
+        ShowDebugCanvas();
     PixTPCLog(PIXtpcINFO,Form("This is end of %s!!!",this->GetProcessorName().c_str()));
+}
+
+void PixHitRecoSimpleProcessor::ShowDebugCanvas()
+{
+    //Get 0-th entry from input pixelTPCdata branch
+    f_tree_in->GetEntry(0);
+    auto Matrix10x300 = new PixelMatrix; 
+    Matrix10x300->PixelTPCdata2PixelMatrix(f_PixTPCdata);
+    if(Matrix10x300->GetMaxMinElement().second < NumOfe_cut)
+        PixTPCLog(PIXtpcWARNING,"The min element < NumOfe_cut, check GenSimData or Rawdata2ROOT");
+    //Create a Canvas
+    auto myc = new TCanvas(Form("C_%smat10x300",this->GetProcessorName().c_str()),"",300,600);
+    myc->SetGrid();
+    myc->SetRightMargin(0.12);
+    myc->SetLogz();
+    //Draw pixel projection at x-y plane
+    auto htrkxy = Matrix10x300->Matrix2HistReadout();
+    htrkxy->SetName(Form("Hxy_%s",this->GetProcessorName().c_str()));
+    htrkxy->DrawCopy("COL Z");
+    delete Matrix10x300;
+    //Draw reco hits from output file 
+    auto outfile = std::make_unique<TFile>(fOutputfileName.c_str(),"READ");
+    outfile->cd();
+    auto tr_out = dynamic_cast<TTree*>(outfile->Get("PixTPCdata"));
+    auto recoHitsdata = new MCTrackdata;
+    tr_out->SetBranchAddress(fOutputBranchName.c_str(),&recoHitsdata);
+    tr_out->GetEntry(0);
+    auto vecRecohits = recoHitsdata->GetClusterVec();
+    auto gRecohits = new TGraph(vecRecohits.size());
+    gRecohits->SetName(Form("Ghits%s",this->GetProcessorName().c_str()));
+    for(size_t kk=0;kk<vecRecohits.size();++kk)
+    {
+        gRecohits->SetPoint(kk,vecRecohits.at(kk).x(),vecRecohits.at(kk).y());
+    }
+    LansxFormat::FormatAll(gRecohits,"%d %e %f",kRed,kFullStar,2);
+    gRecohits->Draw("P");
+    //delete tree and close output file
+    delete tr_out;
+    outfile->Close();
+    //Draw Canvas
+    myc->Draw();
 }
 
 void PixHitRecoSimpleProcessor::DebugPrint()
@@ -236,7 +279,7 @@ void PixHitRecoSimpleProcessor::UsePixelChargeCenterMethod()
 
     outfile->Close();
     
-    PixTPCLog(PIXtpcINFO,"Reco data Write Done, using 10 cols Pixel Charge center method!");
+    PixTPCLog(PIXtpcINFO,"Reco data Write Done, using merged cols Pixel Charge center method!");
 }
 
 void PixHitRecoSimpleProcessor::UseEquivalentPadMethod()
