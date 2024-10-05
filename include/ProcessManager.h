@@ -19,9 +19,11 @@
 #include "TObject.h"
 #include "TObjArray.h"
 #include "TTree.h"
+#include "TRandom3.h"
 
 //Users
 #include "Processor.h"
+#include "PixHitRecoSimpleProcessor.h"
 #include "GenSimData.h"
 
 using PixJson = nlohmann::json;
@@ -46,6 +48,22 @@ struct GenSimDataParsList
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(GenSimDataParsList,Isdebug,Nevts,Particle,Momentum,MomentumReso,InitialPos,InitialDir)
 };
 
+//structure for TPChitReco 
+struct PixTPChitRecoParsList
+{
+    bool Isdebug;
+    bool EquivalentPad;
+    int Processorid;
+    int NumOfColMerge;
+    std::string Inputfile;
+    std::string Inputbranch;
+    std::string Outputfile;
+    std::string Outputbranch;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(PixTPChitRecoParsList,Isdebug,EquivalentPad,Processorid,NumOfColMerge,
+                                   Inputfile,Inputbranch,Outputfile,Outputbranch)
+};
+
 }
 
 
@@ -62,7 +80,8 @@ public:
     {
         Rawdata2ROOT=0,
         GenMCdata,
-        TPChitReco
+        TPChitReco,
+        TPCcalibration
     };
 
     // test function for initial Global maps
@@ -81,6 +100,8 @@ protected:
     void PrintUsage();
     // Generate MC data, CEPCPixtpcTaskType: GenMCdata, 1 in json
     void StartGenMCdata();
+    // Reco PixTPC hits, CEPCPixtpcTaskType: TPChitReco, 2 in json 
+    void StartRecoPixTPChits();
 
 private:
     std::string fTaskjsonfile;

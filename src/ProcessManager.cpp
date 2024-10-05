@@ -50,6 +50,10 @@ int ProcessManager::CEPCPixtpcRun()
             break;
         case TPChitReco:
             std::printf("TPC hits reconstruction!\n");
+            this->StartRecoPixTPChits();
+            break;
+        case TPCcalibration:
+            std::printf("TPC calibration!\n");
             break;
         default:
             this->PrintUsage();
@@ -100,6 +104,12 @@ void ProcessManager::StartGenMCdata()
         gensim->SetTrkInitialDirection(direction);
         //3. simulate tracks
         gensim->GenTracksFromJson();
+        //Show a hist without noise
+        if(configlist.Isdebug)
+        {
+            auto debugCanvas = gensim->ShowPixelResponseWithoutNoise(gRandom->Integer(configlist.Nevts));
+            debugCanvas->Draw();
+        }
         //4. save MC data 
         std::string outputfile = fPixJsonParser.at("Outputfile");
         auto npos_root = outputfile.find(".root");
@@ -121,12 +131,44 @@ void ProcessManager::StartGenMCdata()
     }
 }
 
+void ProcessManager::StartRecoPixTPChits()
+{
+    if(fPixJsonParser.contains("RecoProcessor")) 
+    {
+        auto recoprocessor = fPixJsonParser.at("RecoProcessor");
+        if(recoprocessor == "PixHitRecoSimpleProcessor") 
+        {
+            auto recoprocessorArray = fPixJsonParser.at("RecoProcessorArray");
+
+            for(auto item : recoprocessorArray)
+            {
+                TaskConfigStruct::PixTPChitRecoParsList recoprocessor_i = item;
+                auto pixhitrecoprocessor = new PixHitRecoSimpleProcessor(recoprocessor_i);
+                this->AddProcessor(pixhitrecoprocessor);
+            }
+        }
+        else 
+        {
+            //TODO using PixClusterSepRecoProcessor, under developing 
+        }
+
+        PixTPCLog(PIXtpcINFO,Form("There are %d processors added! ###Start Processing...",this->GetEntries()));
+        this->StartProcessing();
+        
+    }
+    else 
+    {
+        throw std::runtime_error("Error! No RecoProcessor in task json file");
+    }
+}
+
 void ProcessManager::PrintUsage()
 {
     std::printf("========================================\n");
     std::printf("Tasktype: [0], Raw data to ROOT         \n");
     std::printf("Tasktype: [1], generate MC data         \n");
     std::printf("Tasktype: [2], TPC hits reconstruction  \n");
+    std::printf("Tasktype: [3], TPC calibration          \n");
     std::printf("========================================\n");
 }
 
@@ -143,6 +185,7 @@ void ProcessManager::StartProcessing()
         processor_i->InitAction();
         processor_i->ProcessEventAction();
         processor_i->EndAction();
+        delete processor_i;
     }
 }
 

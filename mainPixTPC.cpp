@@ -57,9 +57,11 @@ void test01()
     //auto tree2 = dynamic_cast<TTree*>(file2->Get("PixTPCdata"));
     //auto processor2 = new PrintProcessor(file2,tree2);
     //auto file3 = TFile::Open("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/build/GenMCdata_withNoise_Z24cm.root");
-    auto file3 = TFile::Open("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/test/MCdata_withNoise_Z24.0cm_x0.21.root");
+    //auto file3 = TFile::Open("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/test/MCdata_withNoise_Z24.0cm_x0.21.root");
+    auto file3 = TFile::Open("/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/task/MCdata_electron_5GeV_X0.21cmZ16cm.root");
     if(!file3) return;
     auto processor3 = new PixHitRecoSimpleProcessor(file3);
+    //processor3->EnableProceesorDebug();
 
     auto pm = new ProcessManager;
     //pm->AddProcessor(processor1);
@@ -98,7 +100,7 @@ void test01()
     delete processor1;
     delete processor2;
 #endif
-    delete processor3;
+    //delete processor3;
 
 }
 
@@ -164,42 +166,6 @@ void test02()
      
 }
 
-void test03(double zz)
-{
-    auto gensim = new GenSimData(2000);
-    TVector3 p0(0.21,0,zz),dir(0,1,0);
-    gensim->SetTrkInitialPosition(p0);
-    gensim->SetTrkInitialDirection(dir);
-    //gensim->EnableDebugging();
-    //double maxrange(0.),rforstraight(0.),stepstraight(0.),stepcurved(0.);
-    //gensim->GetSteppingLimits(maxrange,rforstraight,stepstraight,stepcurved);
-    //std::cout<<maxrange<<"\t"<<rforstraight<<"\t"<<stepstraight<<"\t"<<stepcurved<<std::endl;
-    //stepcurved = 0.01;
-    //gensim->SetSteppingLimits(maxrange,rforstraight,stepstraight,stepcurved);
-
-    gensim->GenTracks("e-",5.e+9);
-    gensim->WritePixelTPCdata(Form("../test/MCdata_withNoise_Z%.1fcm_x0.21.root",zz));
-
-    auto myc = new TCanvas("myc","myc",600,600);
-    myc->Divide(2,1);
-    myc->cd(1);
-    gPad->SetRightMargin(0.12);
-    gPad->SetGrid();
-    gPad->SetLogz();
-    auto mat10x300 = gensim->GetPixelMatrix_withoutNoise(0);
-    auto htrkxy = mat10x300->Matrix2HistReadout();
-    htrkxy->Draw("COL Z");
-
-    myc->cd(2);
-    gPad->SetRightMargin(0.12);
-    gPad->SetGrid();
-    gPad->SetLogz();
-    auto mat10x300_1 = gensim->GetPixelMatrix_withoutNoise(1);
-    auto htrkxy1 = mat10x300_1->Matrix2HistReadout();
-    htrkxy1->Draw("COL Z");
-    
-    //delete gensim;
-}
 
 int main(int argc, char** argv)
 {
@@ -222,12 +188,17 @@ int main(int argc, char** argv)
         myc->DrawFrame(0,0,1,1,"Test;x;y");
 
         auto CEPCPixtpcRunManager = new ProcessManager;
-        CEPCPixtpcRunManager->InitialMapsManually("/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/config/ChipChnMaps.csv");
-        //FillPixelTPCdata();
-        //test01();
-        test02();
-        //test03(std::atof(argv[2]));
-        delete CEPCPixtpcRunManager;
+        try {
+            CEPCPixtpcRunManager->InitialMapsManually("/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/config/ChipChnMaps.csv");
+            //FillPixelTPCdata();
+            test01();
+            //test02();
+            //test03(std::atof(argv[2]));
+            delete CEPCPixtpcRunManager;
+        } catch (const std::exception& e)
+        {
+            PixTPCLog(PIXtpcERROR,e.what());
+        }
     }
     else if(argc==2)
     {
@@ -235,6 +206,7 @@ int main(int argc, char** argv)
         try {
             auto CEPCPixtpcRunManager = new ProcessManager(taskfilestr);
             CEPCPixtpcRunManager->CEPCPixtpcRun();
+            delete CEPCPixtpcRunManager;
         } catch (const std::exception& e)
         {
             PixTPCLog(PIXtpcERROR,e.what());

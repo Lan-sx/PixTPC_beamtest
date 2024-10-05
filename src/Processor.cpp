@@ -9,9 +9,8 @@
 
 #include "Processor.h"
 
-Processor::Processor(std::string processorname) 
+Processor::Processor(std::string processorname,int processorid) : fProcessorName(processorname),fIsdebug(false),fProcessorId(processorid)
 {
-    fProcessorName = processorname;
 }
 
 Processor::~Processor()

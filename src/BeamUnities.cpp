@@ -19,6 +19,12 @@ void cepcPixTPClog(int flags, const std::string& file,int line,const std::string
         case PIXtpcERROR:
             logflagStr = "ERROR";
             break;
+        case PIXtpcWARNING:
+            logflagStr = "WARNING";
+            break;
+        case PIXtpcDebug:
+            logflagStr = "DEBUG";
+            break;
     }
     std::printf("[cepcPixTPC %s] File: %s, Line: %d: %s\n",logflagStr.c_str(),
                                                            file.c_str(),

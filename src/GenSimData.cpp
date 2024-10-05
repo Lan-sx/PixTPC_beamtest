@@ -174,12 +174,15 @@ void GenSimData::GenTracks(std::string particleName,double Mom)
         fvecMat10x300Q.push_back(Mat10x300Q_i);
         fvecMat10x300T.push_back(Mat10x300T_i);
         fvecTrackdatas.push_back(vecClusters);
-        std::cout<<"=====> "<<vecClusters.size()<<std::endl;
+        //Debug print, print cluster info
+        if(this->m_debug)
+            std::printf("=====> %zu clusters in this track\n",vecClusters.size());
         //End of a Track
     }
     delete fpolya;
     delete fsigmaTvsZ;
-    std::printf("=============> End of GenTracks! \n");
+    //std::printf("=============> End of GenTracks! \n");
+    PixTPCLog(PIXtpcINFO,"End of GenTracks!");
 }
 
 std::shared_ptr<PixelMatrix> GenSimData::GetPixelMatrix_withoutNoise(int i)
@@ -189,6 +192,24 @@ std::shared_ptr<PixelMatrix> GenSimData::GetPixelMatrix_withoutNoise(int i)
         throw std::out_of_range("!!!Error!!! out of range in GetPixelMatrix");
     
     return fvecMat10x300Q[i];
+}
+
+TCanvas* GenSimData::ShowPixelResponseWithoutNoise(int trkid)
+{
+    // Show a Hist without noise, used for debug
+    auto myc = new TCanvas(Form("cc_histwithoutnoise%d",trkid),Form("cc_histwithoutnoise%d",trkid),300,600);
+    myc->SetGrid();
+
+    myc->SetRightMargin(0.12);
+    myc->SetGrid();
+    myc->SetLogz();
+    auto mat10x300 = this->GetPixelMatrix_withoutNoise(trkid);
+    if(mat10x300->GetMaxMinElement().second > NumOfe_cut)
+        PixTPCLog(PIXtpcWARNING,"The min element > NumOfe_cut");
+    auto htrkxy = mat10x300->Matrix2HistReadout();
+    htrkxy->DrawClone("COL Z");
+
+    return myc;
 }
 
 void GenSimData::WritePixelTPCdata(std::string filename)
@@ -257,7 +278,8 @@ void GenSimData::WritePixelTPCdata(std::string filename)
     tr_out->Write();
     outfile->Close();
 
-    std::printf("======>MC data Write Done!\n");
+    //std::printf("======>MC data Write Done!\n");
+    PixTPCLog(PIXtpcINFO,"MC data Write Done!");
 }
 
 
