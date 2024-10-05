@@ -70,12 +70,15 @@ target_link_libraries(${PROJECT_NAME} PixelTPCdata MCTrackdata nlohmann_json::nl
 make_directory(${CMAKE_SOURCE_DIR}/install)
 set(INSTALL_BIN_DIR "${CMAKE_SOURCE_DIR}/install/bin" CACHE PATH "Installation dir for executables")
 set(INSTALL_LIB_DIR "${CMAKE_SOURCE_DIR}/install/lib" CACHE PATH "Installation dir for lib")
+set(INSTALL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/install/include" CACHE PATH "Installation dir for include")
 
 FILE(GLOB PCM_FILES "${CMAKE_CURRENT_BINARY_DIR}/*.pcm")
 FILE(GLOB ROOTMAP_FILES "${CMAKE_CURRENT_BINARY_DIR}/*.rootmap")
+FILE(GLOB HEADERFILES "${PROJECT_SOURCE_DIR}/include/*.h" "${PROJECT_SOURCE_DIR}/dataModel/*.h")
 
 install(TARGETS ${PROJECT_NAME} DESTINATION "${INSTALL_BIN_DIR}")
 install(TARGETS PixelTPCdata MCTrackdata DESTINATION "${INSTALL_LIB_DIR}")
+install(FILES ${HEADERFILES} DESTINATION "${INSTALL_INCLUDE_DIR}")
 install(FILES ${PCM_FILES} ${ROOTMAP_FILES} DESTINATION "${INSTALL_LIB_DIR}")
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

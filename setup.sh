@@ -2,6 +2,7 @@
 
 BIN_DIR="$(pwd)/install/bin"
 LIB_DIR="$(pwd)/install/lib"
+INCLUDE_DIR="$(pwd)/install/include"
 
 # check dir
 if [ -d "$BIN_DIR" ]; then
@@ -20,3 +21,8 @@ else
     echo "Directory $LIB_DIR does not exist."
 fi
 
+if [ -d "$INCLUDE_DIR" ]; then
+    export CPLUS_INCLUDE_PATH="$INCLUDE_DIR:$CPLUS_INCLUDE_PATH"
+else
+    echo "Directory $INCLUDE_DIR does not exist."
+fi
