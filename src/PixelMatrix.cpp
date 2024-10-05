@@ -76,7 +76,7 @@ TH2Poly* PixelMatrix::Matrix2HistReadout()
         for(int idx = sIdx; idx<eIdx;++idx)
         {
             const int icol = colIdx[idx];
-            
+                        
             auto xpyp = BeamUnities::RowColIdx2Position(irow,icol);
             fHistreadout->Fill(xpyp.first,xpyp.second,(*this)(irow,icol));
             //printf("data(%d,%d) = %d Mat(%d,%d)=%f\n",irow+matlocalmax.GetRowLwb(),
@@ -100,4 +100,15 @@ TH2Poly* PixelMatrix::GetHistReadout()
         return fHistreadout;
     }
     return fHistreadout;
+}
+
+std::pair<double,double> PixelMatrix::GetMaxMinElement()
+{
+    auto pdataArray = this->GetMatrixArray(); 
+    int NumOfElement = this->GetNoElements();
+
+    auto max_ele = std::max_element(pdataArray,pdataArray+NumOfElement);
+    auto min_ele = std::min_element(pdataArray,pdataArray+NumOfElement);
+
+    return  std::make_pair(*max_ele,*min_ele);
 }

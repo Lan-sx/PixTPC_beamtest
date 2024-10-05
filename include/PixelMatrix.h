@@ -10,6 +10,7 @@
 #define __PixelMatrix_H__ 1
 //std
 #include <iostream>
+#include <map>
 
 //ROOT
 #include "TMatrixDSparse.h"
@@ -40,6 +41,9 @@ public:
     TH2Poly* Matrix2HistReadout();
     //Get Pixel Response Hist 
     TH2Poly* GetHistReadout();
+    
+    //Get Max. and Min. element in this Sparse Matrix
+    std::pair<double,double> GetMaxMinElement();
 
 protected:
     //Create readout pixel array (10 x 300) using TH2Poly 
