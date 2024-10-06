@@ -80,7 +80,7 @@ public:
     {
         Rawdata2ROOT=0,
         GenMCdata,
-        TPChitReco,
+        TPCEvtsReco,
         TPCcalibration
     };
 
@@ -101,7 +101,7 @@ protected:
     // Generate MC data, CEPCPixtpcTaskType: GenMCdata, 1 in json
     void StartGenMCdata();
     // Reco PixTPC hits, CEPCPixtpcTaskType: TPChitReco, 2 in json 
-    void StartRecoPixTPChits();
+    void StartRecoPixTPCEvts();
 
 private:
     std::string fTaskjsonfile;

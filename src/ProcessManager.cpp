@@ -48,9 +48,9 @@ int ProcessManager::CEPCPixtpcRun()
             std::printf("GenMCdata!\n");
             this->StartGenMCdata();
             break;
-        case TPChitReco:
-            std::printf("TPC hits reconstruction!\n");
-            this->StartRecoPixTPChits();
+        case TPCEvtsReco:
+            std::printf("TPC evts reconstruction!\n");
+            this->StartRecoPixTPCEvts();
             break;
         case TPCcalibration:
             std::printf("TPC calibration!\n");
@@ -131,11 +131,12 @@ void ProcessManager::StartGenMCdata()
     }
 }
 
-void ProcessManager::StartRecoPixTPChits()
+void ProcessManager::StartRecoPixTPCEvts()
 {
     if(fPixJsonParser.contains("RecoProcessor")) 
     {
         auto recoprocessor = fPixJsonParser.at("RecoProcessor");
+        //Reco Pix TPC hits or track using different processors
         if(recoprocessor == "PixHitRecoSimpleProcessor") 
         {
             auto recoprocessorArray = fPixJsonParser.at("RecoProcessorArray");
@@ -167,7 +168,7 @@ void ProcessManager::PrintUsage()
     std::printf("========================================\n");
     std::printf("Tasktype: [0], Raw data to ROOT         \n");
     std::printf("Tasktype: [1], generate MC data         \n");
-    std::printf("Tasktype: [2], TPC hits reconstruction  \n");
+    std::printf("Tasktype: [2], TPC evts reconstruction  \n");
     std::printf("Tasktype: [3], TPC calibration          \n");
     std::printf("========================================\n");
 }
