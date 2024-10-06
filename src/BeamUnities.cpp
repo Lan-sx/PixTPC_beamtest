@@ -8,7 +8,7 @@
  * ******************************************************************/
 #include "BeamUnities.h"
 
-void cepcPixTPClog(int flags, const std::string& file,int line,const std::string& message)
+void cepcPixTPClog(int flags, const std::string& file,int line,const std::string& message,bool islocated)
 {
     std::string logflagStr;
     switch (flags)
@@ -26,10 +26,18 @@ void cepcPixTPClog(int flags, const std::string& file,int line,const std::string
             logflagStr = "DEBUG";
             break;
     }
-    std::printf("[cepcPixTPC %s] File: %s, Line: %d: %s\n",logflagStr.c_str(),
-                                                           file.c_str(),
-                                                           line,
-                                                           message.c_str());
+    if(islocated)
+    {
+        std::printf("[cepcPixTPC %s] File: %s, Line: %d: %s\n",logflagStr.c_str(),
+                    file.c_str(),
+                    line,
+                    message.c_str());
+    }
+    else
+    {
+        std::printf("[cepcPixTPC %s]: %s\n",logflagStr.c_str(),
+                    message.c_str());
+    }
 }
 
 std::vector<std::pair<int,int>> BeamUnities::CreateChipChnToRowColMap(std::string ChipChnmapfile)

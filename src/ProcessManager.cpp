@@ -57,7 +57,7 @@ int ProcessManager::CEPCPixtpcRun()
             break;
         default:
             this->PrintUsage();
-            PixTPCLog(PIXtpcINFO,"Dummy task!");
+            PixTPCLog(PIXtpcINFO,"Dummy task!",false);
     }
 
     std::printf("> End of Task:%s\n",TaskComments.data());
@@ -72,7 +72,7 @@ void ProcessManager::InitialMapsFromJson()
     }
     else
     {
-        PixTPCLog(PIXtpcERROR,"No Chip Chn map file");
+        PixTPCLog(PIXtpcERROR,"No Chip Chn map file",true);
         throw std::runtime_error("No Chip Chn map file in task json");
     }
         
@@ -152,7 +152,7 @@ void ProcessManager::StartRecoPixTPChits()
             //TODO using PixClusterSepRecoProcessor, under developing 
         }
 
-        PixTPCLog(PIXtpcINFO,Form("There are %d processors added! ###Start Processing...",this->GetEntries()));
+        PixTPCLog(PIXtpcINFO,Form("There are %d processors added! ###Start Processing...",this->GetEntries()),false);
         this->StartProcessing();
         
     }

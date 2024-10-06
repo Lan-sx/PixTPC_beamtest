@@ -197,7 +197,7 @@ int main(int argc, char** argv)
             delete CEPCPixtpcRunManager;
         } catch (const std::exception& e)
         {
-            PixTPCLog(PIXtpcERROR,e.what());
+            PixTPCLog(PIXtpcERROR,e.what(),true);
         }
     }
     else if(argc==2)
@@ -209,11 +209,11 @@ int main(int argc, char** argv)
             delete CEPCPixtpcRunManager;
         } catch (const std::exception& e)
         {
-            PixTPCLog(PIXtpcERROR,e.what());
+            PixTPCLog(PIXtpcERROR,e.what(),true);
         }
     }
     else{
-        PixTPCLog(PIXtpcINFO,"uncorrected input paras");
+        PixTPCLog(PIXtpcINFO,"uncorrected input paras",true);
         return -1;
     }
     

@@ -182,7 +182,7 @@ void GenSimData::GenTracks(std::string particleName,double Mom)
     delete fpolya;
     delete fsigmaTvsZ;
     //std::printf("=============> End of GenTracks! \n");
-    PixTPCLog(PIXtpcINFO,"End of GenTracks!");
+    PixTPCLog(PIXtpcINFO,"End of GenTracks!",false);
 }
 
 std::shared_ptr<PixelMatrix> GenSimData::GetPixelMatrix_withoutNoise(int i)
@@ -205,7 +205,7 @@ TCanvas* GenSimData::ShowPixelResponseWithoutNoise(int trkid)
     myc->SetLogz();
     auto mat10x300 = this->GetPixelMatrix_withoutNoise(trkid);
     if(mat10x300->GetMaxMinElement().second > NumOfe_cut)
-        PixTPCLog(PIXtpcWARNING,"The min element > NumOfe_cut");
+        PixTPCLog(PIXtpcWARNING,"The min element > NumOfe_cut",true);
     auto htrkxy = mat10x300->Matrix2HistReadout();
     htrkxy->DrawClone("COL Z");
 
@@ -279,7 +279,7 @@ void GenSimData::WritePixelTPCdata(std::string filename)
     outfile->Close();
 
     //std::printf("======>MC data Write Done!\n");
-    PixTPCLog(PIXtpcINFO,"MC data Write Done!");
+    PixTPCLog(PIXtpcINFO,"MC data Write Done!",false);
 }
 
 
