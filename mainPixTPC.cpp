@@ -182,7 +182,7 @@ int main(int argc, char** argv)
 
     if(argc < 2)
     {
-        printf("No task json file! Testing\n");
+        PixTPCLog(PIXtpcINFO,"No task json file! Testing",false);
         auto myc = new TCanvas("myc","myc",800,600);
         myc->SetGrid();
         myc->DrawFrame(0,0,1,1,"Test;x;y");
@@ -232,7 +232,7 @@ int main(int argc, char** argv)
         <<BeamUnities::ChipChn2RowCol(22,54,vmaps).first<<"\t"
         <<BeamUnities::ChipChn2RowCol(22,54,vmaps).second<<std::endl;
 #endif
-    std::printf("--------------------> Code end! \n");
+    PixTPCLog(PIXtpcINFO,"--------------------> Code end!",false);
     app.Run(kTRUE);
     return 0;
 }

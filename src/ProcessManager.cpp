@@ -35,9 +35,9 @@ int ProcessManager::CEPCPixtpcRun()
     std::string TaskComments = fPixJsonParser.at("Comments");
     int Tasktype = fPixJsonParser.at("Tasktype");
     this->InitialMapsFromJson();
-    std::printf("==============================================\n");
-    std::printf("> Start a Task: %s\n",TaskComments.data());
-    std::printf("==============================================\n");
+    PixTPCLog(PIXtpcINFO,"==============================================",false);
+    PixTPCLog(PIXtpcINFO,Form("> Start a Task: %s",TaskComments.c_str()),false);
+    PixTPCLog(PIXtpcINFO,"==============================================",false);
     
     switch(Tasktype)
     {
@@ -60,7 +60,7 @@ int ProcessManager::CEPCPixtpcRun()
             PixTPCLog(PIXtpcINFO,"Dummy task!",false);
     }
 
-    std::printf("> End of Task:%s\n",TaskComments.data());
+    PixTPCLog(PIXtpcINFO,Form("> End of Task:%s\n",TaskComments.c_str()),false);
     return 0;
 }
 
