@@ -22,6 +22,7 @@
 #include "TRandom3.h"
 
 //Users
+#include "RawdataConverter.h"
 #include "Processor.h"
 #include "PixHitRecoSimpleProcessor.h"
 #include "GenSimData.h"
@@ -66,7 +67,6 @@ struct PixTPChitRecoParsList
 
 }
 
-
 class ProcessManager : public TObjArray
 {
 public:
@@ -96,6 +96,8 @@ public:
 protected:
     // Initial GlobalMaps from json
     void InitialMapsFromJson();
+    //Convert raw binary data to .root data
+    void StartUnpackage();
     // Default, print usage info
     void PrintUsage();
     // Generate MC data, CEPCPixtpcTaskType: GenMCdata, 1 in json

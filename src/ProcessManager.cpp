@@ -8,7 +8,6 @@
  * ******************************************************************/
 #include "ProcessManager.h"
 
-
 ProcessManager::ProcessManager() : fTaskjsonfile("")
 {}
 
@@ -42,25 +41,26 @@ int ProcessManager::CEPCPixtpcRun()
     switch(Tasktype)
     {
         case Rawdata2ROOT:
-            std::printf("Raw data to root file!\n");
+            std::printf("@@@Raw data to root file!\n");
+            this->StartUnpackage();
             break;
         case GenMCdata:
-            std::printf("GenMCdata!\n");
+            std::printf("@@@GenMCdata!\n");
             this->StartGenMCdata();
             break;
         case TPCEvtsReco:
-            std::printf("TPC evts reconstruction!\n");
+            std::printf("@@@TPC evts reconstruction!\n");
             this->StartRecoPixTPCEvts();
             break;
         case TPCcalibration:
-            std::printf("TPC calibration!\n");
+            std::printf("@@@TPC calibration!\n");
             break;
         default:
             this->PrintUsage();
             PixTPCLog(PIXtpcINFO,"Dummy task!",false);
     }
 
-    PixTPCLog(PIXtpcINFO,Form("> End of Task:%s\n",TaskComments.c_str()),false);
+    PixTPCLog(PIXtpcINFO,Form("> End of Task:%s",TaskComments.c_str()),false);
     return 0;
 }
 
@@ -76,6 +76,18 @@ void ProcessManager::InitialMapsFromJson()
         throw std::runtime_error("No Chip Chn map file in task json");
     }
         
+}
+
+void ProcessManager::StartUnpackage()
+{
+    PixTPCLog(PIXtpcDebug,"Test print in StartUnpackage()",false);
+    std::string inputrawbinfile= fPixJsonParser.at("Inputfile");
+    std::string outputrootfile = fPixJsonParser.at("Outputfile");
+    PixTPCLog(PIXtpcDebug,(inputrawbinfile+outputrootfile).data(),false);
+    //auto myCoverter = new RawdataConverter("/mnt/e/WorkSpace/DESYBeam_Test/test/TEPIX_test_canwen/0619_new_4/data_lg_300ns.dat_r.dat");
+    //myCoverter->DoUnpackage();
+    //delete myCoverter;
+    PixTPCLog(PIXtpcDebug,"End of StartUnpackage()",false);
 }
 
 void ProcessManager::StartGenMCdata()
