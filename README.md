@@ -18,6 +18,7 @@ Then,
     source ./setup.sh
     ```
 ## How to Run?
+
     ```shell
     cepcPixTPC task.json
     ```
