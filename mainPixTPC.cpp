@@ -21,8 +21,8 @@
 #include "Lansxlogon.h"
 
 // User
-#include "Rawdata2ROOT.h"
 #include "ProcessManager.h"
+#include "RawdataConverter.h"
 #include "PrintProcessor.h"
 #include "PixHitRecoSimpleProcessor.h"
 #include "BeamUnities.h"
@@ -37,7 +37,7 @@ using namespace std;
 void FillPixelTPCdata()
 {
     try {
-        Rawdata2ROOT* myConvert = new Rawdata2ROOT("/mnt/d/Data/experiment/DESYBeamTest/test/TEPIX_test_canwen/0619_new_4/data_lg_300ns.dat_r.dat");
+        RawdataConverter* myConvert = new RawdataConverter("/mnt/e/WorkSpace/DESYBeam_Test/test/TEPIX_test_canwen/0619_new_4/data_lg_300ns.dat_r.dat");
         myConvert->DoUnpackage();
         delete myConvert;
     }catch (const std::exception& e)
@@ -48,59 +48,63 @@ void FillPixelTPCdata()
 
 void test01()
 {
-    //auto file1 = TFile::Open("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/build/Test_lg_300ns.root");
-    //if(!file1) return;
-    //auto tree1 = dynamic_cast<TTree*>(file1->Get("PixTPCdata"));
-    //auto processor1 = new PrintProcessor(file1,tree1);
+    auto file3 = TFile::Open("/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/task/MCdata_electron_5GeV_X0.21cmZ16cm.root");
+    if(!file3) return;
+    auto processor3 = new PixHitRecoSimpleProcessor(file3);
+    processor3->EnableProceesorDebug();
+
+    auto pm = new ProcessManager;
+    pm->AddProcessor(processor3);
+    pm->StartProcessing();
+
+#if 0
+    auto file1 = TFile::Open("/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/build/Test_lg_300ns.root");
+    if(!file1) return;
+    auto tree1 = dynamic_cast<TTree*>(file1->Get("PixTPCdata"));
+    auto processor1 = new PrintProcessor(file1,tree1);
     //auto file2 = TFile::Open("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/build/Test_hg_20ns.root");
     //if(!file2) return;
     //auto tree2 = dynamic_cast<TTree*>(file2->Get("PixTPCdata"));
     //auto processor2 = new PrintProcessor(file2,tree2);
     //auto file3 = TFile::Open("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/build/GenMCdata_withNoise_Z24cm.root");
     //auto file3 = TFile::Open("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/test/MCdata_withNoise_Z24.0cm_x0.21.root");
-    auto file3 = TFile::Open("/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/task/MCdata_electron_5GeV_X0.21cmZ16cm.root");
-    if(!file3) return;
-    auto processor3 = new PixHitRecoSimpleProcessor(file3);
-    //processor3->EnableProceesorDebug();
 
-    auto pm = new ProcessManager;
-    //pm->AddProcessor(processor1);
-    //pm->AddProcessor(processor2);
-    pm->AddProcessor(processor3);
-    pm->StartProcessing();
-
-#if 0
-    auto myc =new TCanvas("myc","myc",800,600);
-    myc->SetGrid();
-    myc->DrawFrame(3000,0,5000,800,";Channel;Q mean [LSB]");
-    auto hq1 = processor1->GetHistQ();
-    cout<<"=========> "<<hq1->GetEntries()<<"\t"<<hq1->GetMean()<<endl;
-    //LansxFormat::FormatAll(hq1,"%a",kBlue);
-    hq1->DrawCopy();
-
+    processor1->InitAction();
+    processor1->ProcessEventAction();
+    processor1->EndAction();
     auto myc1 =new TCanvas("myc1","myc1",800,600);
     myc1->SetGrid();
-    myc1->DrawFrame(0,3000,150,5000,";Channel;Q mean [LSB]");
+    myc1->DrawFrame(3000,0,5000,800,";Channel;Q mean [LSB]");
+    auto hq1 = processor1->GetHistQ();
+    if(!hq1)
+    {
+        cout<<"=======KKKKJj"<<endl;
+        return;
+    }
+    cout<<"=========> "<<hq1->GetEntries()<<"\t"<<hq1->GetMean()<<endl;
+    LansxFormat::FormatAll(hq1,"%a",kBlue);
+    hq1->DrawCopy();
+
+    auto myc2 =new TCanvas("myc2","myc2",800,600);
+    myc2->SetGrid();
+    myc2->DrawFrame(0,3000,150,5000,";Channel;Q mean [LSB]");
 
     auto grQchn_hg = processor1->GetGrQ();
     grQchn_hg->SetName("grhg");
-    auto grQchn_lg = processor2->GetGrQ();
-    grQchn_lg->SetName("grlg");
+    //auto grQchn_lg = processor2->GetGrQ();
+    //grQchn_lg->SetName("grlg");
     LansxFormat::FormatAll(grQchn_hg,"%a %d%e",kBlue,kBlue,kFullCircle);
-    LansxFormat::FormatAll(grQchn_lg,"%a %d%e",kRed,kRed,kFullCircle);
+    //LansxFormat::FormatAll(grQchn_lg,"%a %d%e",kRed,kRed,kFullCircle);
     grQchn_hg->Draw("P");
-    grQchn_lg->Draw("P");
+    //grQchn_lg->Draw("P");
 
     auto leg = new TLegend(0.6,0.7,0.9,0.9);
     leg->SetFillStyle(000);
     leg->AddEntry(grQchn_hg,"High gain, 300ns","lp");
-    leg->AddEntry(grQchn_lg,"Low gain, 20ns","lp");
+    //leg->AddEntry(grQchn_lg,"Low gain, 20ns","lp");
     leg->Draw();
-
     delete processor1;
-    delete processor2;
 #endif
-    //delete processor3;
 
 }
 
