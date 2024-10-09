@@ -40,27 +40,41 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
 {
     PixTPCLog(PIXtpcDebug,"Test Print in DoUnpackageRawdataConverter()",false);
 
-    // header ref Jianmeng Dong
-    unsigned char header_r[] = {0xff,0x00};
+    // header, ref Jianmeng Dong and Canwen Liu 
+    unsigned char header_r[] = {0x55,0xaa};
     // finder header position 
     auto vheaderPos = find_header(f_file,header_r,2);
 
-    cout<<"====> HeadPos/TailPos Size:"<<vheaderPos.size()<<endl;
+    cout<<"====> HeadPos Size:"<<vheaderPos.size()<<endl;
     
-    cout<<"TailPos[0]= "<<vheaderPos.at(0)<<endl;
-    cout<<"TailPos[1]= "<<vheaderPos.at(1)<<endl;
     //buffer vector
-    //vector<unsigned char> vBuffer;
-    //
-    //for(size_t ii=1; ii<3; ++ii)
-    //{
-    //    auto bufferlength = vheaderPos.at(ii)-vheaderPos.at(ii-1);
-    //    vBuffer.resize(bufferlength);
-    //    f_file->read(reinterpret_cast<char*>(vBuffer.data()),bufferlength);
+    vector<unsigned char> vBuffer;
+    
+    for(size_t ii=1; ii<3; ++ii)
+    {
+        auto bufferlength = vheaderPos.at(ii)-vheaderPos.at(ii-1);
+        vBuffer.resize(bufferlength);
+        f_file->read(reinterpret_cast<char*>(vBuffer.data()),bufferlength);
+        
+        printHeaderTail(vBuffer);    
+        printChipNumber(vBuffer);
+        printTimeStamp(vBuffer);
+        printTriggerNum(vBuffer);
 
-    //    std::printf("BufferLength=%d and Head %s\n",int(bufferlength),std::bitset<8>(static_cast<unsigned char>(vBuffer.at(0))).to_string().c_str());
-    //    //std::printf("===Tail %s\n",std::bitset<8>(static_cast<unsigned char>(vBuffer.at(bufferlength-2))).to_string().c_str());
-    //}
+        //vector<bool> DataBinSeq;
+        //for(const auto &byte : vBuffer) 
+        //{
+        //    for(int mm=7; mm >= 0; --mm)
+        //    {
+        //        unsigned char bit = (byte >> mm) & 1; 
+        //        DataBinSeq.push_back(bit);
+        //    }
+        //}
+        //if(fIsdebug)
+        //    PixTPCLog(PIXtpcDebug,Form("DataBinSeq size=%zu",DataBinSeq.size()),false);
+        //DataBinSeq.clear();
+        PixTPCLog(PIXtpcDebug,Form("---------------------Package%zu",ii),false);
+    }
 
 #if 0
     vBuffer.resize(1);

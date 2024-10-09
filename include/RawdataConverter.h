@@ -43,7 +43,8 @@ public:
     bool DoUnpackage();
     // 2024-10-08: test ref Jianmeng Dong data
     bool DoUnpackageRawdata2ROOT();
-    
+
+protected:
     //----------------------------------------
     //@brief find position of header
     //@param ifstream *fin: file stream
@@ -51,6 +52,11 @@ public:
     //@param int lengthtar: length of target
     //----------------------------------------
     vector<long long> find_header(ifstream* fin,unsigned char *tar,int lengthtar);
+    
+    inline void printHeaderTail(const vector<unsigned char> vecbuffer);
+    inline void printChipNumber(const vector<unsigned char> vecbuffer);
+    inline void printTimeStamp (const vector<unsigned char> vecbuffer);
+    inline void printTriggerNum(const vector<unsigned char> vecbuffer);
 
 private:
     bool fIsdebug;
@@ -61,5 +67,50 @@ private:
 };
 
 
+inline void RawdataConverter::printHeaderTail(const vector<unsigned char> vecbuffer)
+{
+
+    cout<<"Head: ";
+    cout<<std::hex<<std::setw(2)<<std::setfill('0')
+        <<static_cast<int>(vecbuffer.at(0))
+        <<std::hex<<std::setw(2)<<std::setfill('0')
+        <<static_cast<int>(vecbuffer.at(1))<<" ";
+    cout<<"Tail: ";
+    cout<<std::hex<<std::setw(2)<<std::setfill('0')
+        <<static_cast<int>(vecbuffer.at(vecbuffer.size()-2))
+        <<std::hex<<std::setw(2)<<std::setfill('0')
+        <<static_cast<int>(vecbuffer.at(vecbuffer.size()-1))<<endl;
+}
+
+inline void RawdataConverter::printChipNumber(const vector<unsigned char> vecbuffer)
+{
+    cout<<"Chip Number: ";
+    cout<<std::hex<<std::setw(2)<<std::setfill('0')
+        <<static_cast<int>(vecbuffer.at(2))
+        <<std::hex<<std::setw(2)<<std::setfill('0')
+        <<static_cast<int>(vecbuffer.at(3))<<endl;
+}
+
+inline void RawdataConverter::printTimeStamp (const vector<unsigned char> vecbuffer)
+{
+    std::cout<<"TimeStamp: ";
+    for(int ii=0; ii<8;++ii) 
+    {
+        cout<<std::hex<<std::setw(2)<<std::setfill('0')
+            <<static_cast<int>(static_cast<unsigned char>(vecbuffer.at(ii+4)))<<" ";
+    }
+    cout<<endl;
+}
+
+inline void RawdataConverter::printTriggerNum(const vector<unsigned char> vecbuffer)
+{
+    std::cout<<"Trigger Number: ";
+    for(int ii=0; ii<4;++ii) 
+    {
+        cout<<std::hex<<std::setw(2)<<std::setfill('0')
+            <<static_cast<int>(static_cast<unsigned char>(vecbuffer.at(ii+12)))<<" ";
+    }
+    cout<<endl;
+}
 
 #endif
