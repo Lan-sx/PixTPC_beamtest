@@ -1,3 +1,11 @@
+/*********************************************************************
+ * Author           : Lan-sx
+ * Email            : shexin@ihep.ac.cn
+ * Last modified    : 2024-10-09 11:22
+ * Filename         : RawdataConverter.h
+ * Description      : 
+ * Update           : 
+ * ******************************************************************/
 #ifndef __RawdataConverter_H__
 #define __RawdataConverter_H__ 1
 //std
@@ -8,6 +16,7 @@
 #include <string>
 #include <fstream>
 #include <bitset>
+#include <iomanip>
 #include <exception>
 
 //ROOT CERN

@@ -1,14 +1,21 @@
+/*********************************************************************
+ * Author           : Lan-sx
+ * Email            : shexin@ihep.ac.cn
+ * Last modified    : 2024-10-09 11:22
+ * Filename         : RawdataConverter.cpp
+ * Description      : 
+ * Update           : 
+ * ******************************************************************/
 #include "RawdataConverter.h"
 
-//RawdataConverter::RawdataConverter(std::string& rawdatafilename,std::string& rawrootfilename) : 
-//    fIsdebug(true),fRootName(rawrootfilename)
-//{
-//
-//    f_file = new ifstream;
-//    f_file->open(rawdatafilename,ios::in | ios::binary);
-//    if(!f_file->is_open())
-//        throw std::runtime_error("FILE DOES NOT EXIST!");
-//}
+RawdataConverter::RawdataConverter(std::string& rawdatafilename,std::string& rawrootfilename) : 
+    fIsdebug(true),fRootName(rawrootfilename),fPixtpcdata(nullptr)
+{
+    f_file = new ifstream;
+    f_file->open(rawdatafilename,ios::in | ios::binary);
+    if(!f_file->is_open())
+        throw std::runtime_error("FILE DOES NOT EXIST!");
+}
 
 RawdataConverter::RawdataConverter(const char* rawdatafilename) : fIsdebug(true),fPixtpcdata(nullptr)
 {
@@ -22,12 +29,96 @@ RawdataConverter::RawdataConverter(const char* rawdatafilename) : fIsdebug(true)
 RawdataConverter::~RawdataConverter()
 {
     delete f_file;
-    if(fPixtpcdata) delete fPixtpcdata;
+    if(fPixtpcdata) 
+    {
+        //PixTPCLog(PIXtpcDebug,"fPixtpcdata  Dtors",true);
+        delete fPixtpcdata;
+    }
 }
 
 bool RawdataConverter::DoUnpackageRawdata2ROOT()
 {
     PixTPCLog(PIXtpcDebug,"Test Print in DoUnpackageRawdataConverter()",false);
+
+    // header ref Jianmeng Dong
+    unsigned char header_r[] = {0xff,0x00};
+    // finder header position 
+    auto vheaderPos = find_header(f_file,header_r,2);
+
+    cout<<"====> HeadPos/TailPos Size:"<<vheaderPos.size()<<endl;
+    
+    cout<<"TailPos[0]= "<<vheaderPos.at(0)<<endl;
+    cout<<"TailPos[1]= "<<vheaderPos.at(1)<<endl;
+    //buffer vector
+    //vector<unsigned char> vBuffer;
+    //
+    //for(size_t ii=1; ii<3; ++ii)
+    //{
+    //    auto bufferlength = vheaderPos.at(ii)-vheaderPos.at(ii-1);
+    //    vBuffer.resize(bufferlength);
+    //    f_file->read(reinterpret_cast<char*>(vBuffer.data()),bufferlength);
+
+    //    std::printf("BufferLength=%d and Head %s\n",int(bufferlength),std::bitset<8>(static_cast<unsigned char>(vBuffer.at(0))).to_string().c_str());
+    //    //std::printf("===Tail %s\n",std::bitset<8>(static_cast<unsigned char>(vBuffer.at(bufferlength-2))).to_string().c_str());
+    //}
+
+#if 0
+    vBuffer.resize(1);
+    f_file->read(reinterpret_cast<char*>(vBuffer.data()),1);
+
+    std::printf("===Head: %X\n",static_cast<int>(vBuffer.at(0)));
+    std::printf("===Head %s\n",std::bitset<8>(static_cast<unsigned char>(vBuffer.at(0))).to_string().c_str());
+
+    vBuffer.clear(); 
+    vBuffer.resize(1);
+    f_file->read(reinterpret_cast<char*>(vBuffer.data()),1);
+
+    std::printf("===Channel Number %s\n",std::bitset<8>(static_cast<unsigned char>(vBuffer.at(0))).to_string().c_str());
+
+    vBuffer.clear(); 
+    vBuffer.resize(8);
+    f_file->read(reinterpret_cast<char*>(vBuffer.data()),8);
+
+    std::cout<<"TimeStamp: ";
+    for(auto byte : vBuffer) 
+    {
+        cout<<std::hex<<std::setw(2)<<std::setfill('0')
+            <<static_cast<int>(static_cast<unsigned char>(byte))<<" ";
+    }
+    cout<<endl;
+
+    vBuffer.clear(); 
+    vBuffer.resize(4);
+    f_file->read(reinterpret_cast<char*>(vBuffer.data()),4);
+
+    std::cout<<"Trigger Number: ";
+    for(auto byte : vBuffer) 
+    {
+        cout<<std::setw(2)
+            <<static_cast<int>(static_cast<unsigned char>(byte))<<" ";
+    }
+    cout<<endl;
+
+
+    vBuffer.clear(); 
+    vBuffer.resize(16);
+    f_file->read(reinterpret_cast<char*>(vBuffer.data()),16);
+    vector<bool> DataBinSeq;  
+    for(const auto &byte : vBuffer) 
+    {
+        for(int mm=7; mm >= 0; --mm)
+        {
+            unsigned char bit = (byte >> mm) & 1; 
+            DataBinSeq.push_back(bit);
+        }
+    }
+
+    std::cout<<"DataBinSeq: ";
+    for(auto bit : DataBinSeq)
+        cout<<bit;
+    cout<<endl;
+#endif
+    f_file->close();
     return true;
 }
 
@@ -43,13 +134,13 @@ bool RawdataConverter::DoUnpackage()
     // data buffer vector 
     vector<unsigned char> vBuffer;
     int vld_frame =0;
-    
+
     // header
     // need to update
     unsigned char header_r[] = {0x57,0x46,0x19,0x23};
     // finder header position 
     auto vheaderPos = find_header(f_file,header_r,4);
-    
+
     // sub collections for fill PixelTPCdata
     PairQT tmpPairqt;
     VecSingleChn tmpVecSingleChn;
@@ -112,7 +203,7 @@ bool RawdataConverter::DoUnpackage()
                     //=============================================================
                     //electonical events level: fill std::vector<TYPE3>
                     //=============================================================
-                    
+
                     //calc time and amp for each events
                     for(int i_evt=0;i_evt<evt_num;++i_evt)
                     {
@@ -168,7 +259,7 @@ bool RawdataConverter::DoUnpackage()
 
         std::fill_n(vBuffer.data(),bufferlength,0);
     }
-    
+
     //write root file 
     tree->Write();
     fileroot->Close();
@@ -201,7 +292,7 @@ vector<long long> RawdataConverter::find_header(ifstream* fin,unsigned char *tar
         //move tail of tempbuffer to the head
         std::memmove(tempbuffer.data(),tempbuffer.data()+__MB__,lengthtar-1);
     }
-    
+
     //clear fin error and come back to file head
     fin->clear();
     fin->seekg(0,ios::beg);
