@@ -84,9 +84,12 @@ void ProcessManager::StartUnpackage()
     std::string inputrawbinfile= fPixJsonParser.at("Inputfile");
     std::string outputrootfile = fPixJsonParser.at("Outputfile");
     PixTPCLog(PIXtpcDebug,(inputrawbinfile+outputrootfile).data(),false);
+    
+    auto myConverter = new RawdataConverter(inputrawbinfile,outputrootfile);
+    auto flags1 = myConverter->DoUnpackageRawdata2ROOT();
     //auto myCoverter = new RawdataConverter("/mnt/e/WorkSpace/DESYBeam_Test/test/TEPIX_test_canwen/0619_new_4/data_lg_300ns.dat_r.dat");
     //myCoverter->DoUnpackage();
-    //delete myCoverter;
+    delete myConverter;
     PixTPCLog(PIXtpcDebug,"End of StartUnpackage()",false);
 }
 
