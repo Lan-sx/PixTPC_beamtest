@@ -9,15 +9,17 @@
 #include "RawdataConverter.h"
 
 RawdataConverter::RawdataConverter(std::string& rawdatafilename,std::string& rawrootfilename) : 
-    fIsdebug(true),fRootName(rawrootfilename),fPixtpcdata(nullptr)
+    fIsdebug(false),fRootName(rawrootfilename),fPixtpcdata(nullptr)
 {
     f_file = new ifstream;
     f_file->open(rawdatafilename,ios::in | ios::binary);
     if(!f_file->is_open())
         throw std::runtime_error("FILE DOES NOT EXIST!");
+    
+    fHistdebug = nullptr;
 }
 
-RawdataConverter::RawdataConverter(const char* rawdatafilename) : fIsdebug(true),fPixtpcdata(nullptr)
+RawdataConverter::RawdataConverter(const char* rawdatafilename) : fIsdebug(false),fPixtpcdata(nullptr)
 {
     f_file = new ifstream;
     f_file->open(rawdatafilename,ios::in | ios::binary);
@@ -36,45 +38,152 @@ RawdataConverter::~RawdataConverter()
     }
 }
 
+void  RawdataConverter::ConfigDebugHist(TaskConfigStruct::HistConfigList inputhistconfig)
+{
+    if(!fIsdebug)
+    {
+        PixTPCLog(PIXtpcWARNING,"Only used in debug mode",false);
+        return;
+    }
+    fHistconfig.Dim = inputhistconfig.Dim;
+    fHistconfig.Histbins[0]=inputhistconfig.Histbins[0];
+    fHistconfig.Histbins[1]=inputhistconfig.Histbins[1];
+    fHistconfig.HistXYstart[0]=inputhistconfig.HistXYstart[0];
+    fHistconfig.HistXYstart[1]=inputhistconfig.HistXYstart[1];
+    fHistconfig.HistXYend[0]=inputhistconfig.HistXYend[0];
+    fHistconfig.HistXYend[1]=inputhistconfig.HistXYend[1];
+}
+
 bool RawdataConverter::DoUnpackageRawdata2ROOT()
 {
-    PixTPCLog(PIXtpcDebug,"Test Print in DoUnpackageRawdataConverter()",false);
-
     // header, ref Jianmeng Dong and Canwen Liu 
     unsigned char header_r[] = {0x55,0xaa};
     // finder header position 
     auto vheaderPos = find_header(f_file,header_r,2);
-
-    cout<<"====> HeadPos Size:"<<vheaderPos.size()<<endl;
-    
     //buffer vector
     vector<unsigned char> vBuffer;
-    
-    for(size_t ii=1; ii<3; ++ii)
+
+    if(fIsdebug)
     {
+        //fHistdebug = std::make_shared<TH1D>("hChips",";chip idx;Cnts",4,0,4);
+        fHistdebug = std::make_shared<TH1D>("hChips",";Amp. [LSB];Cnts",fHistconfig.Histbins[0],
+                                                                        fHistconfig.HistXYstart[0],
+                                                                        fHistconfig.HistXYend[0]);
+    }
+
+    bool ChippackageLengthWarning = false;
+    //loop all packages 
+    for(size_t ii=1; ii<vheaderPos.size();++ii)
+    {
+        if(ii%5000==0)
+            std::printf("### %zu packages Done!\n",ii);
         auto bufferlength = vheaderPos.at(ii)-vheaderPos.at(ii-1);
+        if(bufferlength!=1858)
+        {
+            //if(fIsdebug)
+            //    PixTPCLog(PIXtpcERROR,"There are Package length errors",true);
+            ChippackageLengthWarning = true;
+            continue;
+        }
         vBuffer.resize(bufferlength);
         f_file->read(reinterpret_cast<char*>(vBuffer.data()),bufferlength);
-        
-        printHeaderTail(vBuffer);    
-        printChipNumber(vBuffer);
-        printTimeStamp(vBuffer);
-        printTriggerNum(vBuffer);
 
-        //vector<bool> DataBinSeq;
-        //for(const auto &byte : vBuffer) 
-        //{
-        //    for(int mm=7; mm >= 0; --mm)
-        //    {
-        //        unsigned char bit = (byte >> mm) & 1; 
-        //        DataBinSeq.push_back(bit);
-        //    }
-        //}
-        //if(fIsdebug)
-        //    PixTPCLog(PIXtpcDebug,Form("DataBinSeq size=%zu",DataBinSeq.size()),false);
-        //DataBinSeq.clear();
-        PixTPCLog(PIXtpcDebug,Form("---------------------Package%zu",ii),false);
-    }
+        if(fIsdebug && ii<2)
+        {
+            printHeaderTail(vBuffer);    
+            printChipNumber(vBuffer);
+            printTimeStamp(vBuffer);
+            printTriggerNum(vBuffer);
+        }
+
+        int chipNumber = static_cast<int>(vBuffer.at(3));
+        if(fIsdebug)
+            fHistdebug->Fill(chipNumber);
+
+        vector<bool> binarySeq;
+
+        // Convert bufferlength unsigned char to BinSequeue size = (bufferlength-16)*8 
+        int kk=0;
+        for(const auto &byte : vBuffer) 
+        {
+            //skip head,chipnumber,timestamp,triggernum = 16byte
+            if(kk<16)
+            {
+                kk++;
+                continue;
+            }
+
+            for(int mm=7; mm >= 0; --mm)
+            {
+                unsigned char bit = (byte >> mm) & 1; 
+                binarySeq.push_back(bit);
+            }
+        }
+
+#if 0
+        if(fIsdebug && ii<4)
+        {
+            cout<<"Package"<<ii<<":";
+            for(int ibits=0; ibits<31; ++ibits)
+            {
+                cout<<std::dec<<DataBinSeq.at(ibits);
+            }
+            cout<<endl;
+        }
+#endif
+
+        bool evt_flag = true;
+        int evt_num = 4;
+        bitset<2> evtBits;
+        bitset<14> timeBits,ampBits;
+        size_t INDEX = 0;
+        // Read T/Q info from 128 chips 
+        for(int chn_id=0; chn_id < __NumChn__; ++chn_id)
+        {
+            if(INDEX >= binarySeq.size()-2)
+            {
+                PixTPCLog(PIXtpcERROR,"------Package Error! out range of binarySeq size",true);
+            }
+            else
+            {
+                evt_flag = static_cast<bool>(binarySeq.at(INDEX));
+                //!!! For std::bitset<N> bs, index from right to left
+                evtBits[1]=binarySeq.at(INDEX+1);
+                evtBits[0]=binarySeq.at(INDEX+2);
+                if(evt_flag)
+                    evt_num = evtBits.to_ulong()+1;
+                else 
+                    evt_num=0;
+
+                for(int i_evt=0;i_evt<evt_num;++i_evt)
+                {
+                    //fill raw Gray code
+                    for(int i_bits=0;i_bits<14;++i_bits)
+                    {
+                        auto timeIdxOffset = INDEX +3 ;
+                        auto ampIdxOffset = INDEX +3 +14;
+                        //!!! For bitset<N> bs, index from right to left
+                        //!!! So start from index 13
+                        timeBits[13-i_bits] = binarySeq.at(i_bits+timeIdxOffset+28*i_evt);
+                        ampBits[13-i_bits] = binarySeq.at(i_bits + ampIdxOffset+28*i_evt);
+                    }
+                    //convert raw Gray code to Binary code and decimal  
+                    for(int ll=13;ll>=0;--ll)
+                    {
+                        timeBits[ll] = (ll==13) ? timeBits[ll] : (timeBits[ll+1] ^ timeBits[ll]); 
+                        ampBits[ll] = (ll==13) ? ampBits[ll] : (ampBits[ll+1] ^ ampBits[ll]); 
+                    }
+                    
+                    if(fIsdebug && i_evt==1 && chipNumber==3)
+                    {
+                        fHistdebug->Fill(double(ampBits.to_ulong()));
+                    }
+
+                }//end of channel evts 
+            }
+        }//end of this package / end of 128 channels   
+        binarySeq.clear();
+    }//end of data
 
 #if 0
     vBuffer.resize(1);
@@ -132,7 +241,10 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
         cout<<bit;
     cout<<endl;
 #endif
+
     f_file->close();
+    if(ChippackageLengthWarning)
+        PixTPCLog(PIXtpcWARNING,"Chips data length error !!!",false);
     return true;
 }
 

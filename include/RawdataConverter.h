@@ -18,18 +18,21 @@
 #include <bitset>
 #include <iomanip>
 #include <exception>
+#include <memory>
 
 //ROOT CERN
 #include "TFile.h"
 #include "TTree.h"
+#include "TH1D.h"
 
 //User
+#include "JsonStruct.h"
 #include "PixelTPCdata.h"
 #include "BeamUnities.h"
 
 
 #define __MB__ 1024*1024
-#define __DEBUG__
+
 using namespace std;
 
 class RawdataConverter
@@ -44,6 +47,14 @@ public:
     // 2024-10-08: test ref Jianmeng Dong data
     bool DoUnpackageRawdata2ROOT();
 
+    //Switch debug 
+    void EnableUnpackgeDebug() { fIsdebug = true; } 
+    void DisableUnpackgeDebug() { fIsdebug = false; }
+    decltype(auto) GetDebugHist() { return fHistdebug; }
+    
+    //Set/Config Debug histogram bins,start bins, end bins when EnableUnpackgeDebug
+    void  ConfigDebugHist(TaskConfigStruct::HistConfigList inputhistconfig);
+
 protected:
     //----------------------------------------
     //@brief find position of header
@@ -53,6 +64,9 @@ protected:
     //----------------------------------------
     vector<long long> find_header(ifstream* fin,unsigned char *tar,int lengthtar);
     
+    //----------------------------------------
+    //@brief some debug print functions
+    //----------------------------------------
     inline void printHeaderTail(const vector<unsigned char> vecbuffer);
     inline void printChipNumber(const vector<unsigned char> vecbuffer);
     inline void printTimeStamp (const vector<unsigned char> vecbuffer);
@@ -63,7 +77,11 @@ private:
     string fRootName;
     ifstream* f_file;
     PixelTPCdata* fPixtpcdata;
-
+    
+    //histogram config, used in debug
+    TaskConfigStruct::HistConfigList fHistconfig;
+    //histogram for debug
+    std::shared_ptr<TH1D> fHistdebug;
 };
 
 

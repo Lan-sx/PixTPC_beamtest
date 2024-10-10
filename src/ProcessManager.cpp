@@ -83,12 +83,40 @@ void ProcessManager::StartUnpackage()
     PixTPCLog(PIXtpcDebug,"Test print in StartUnpackage()",false);
     std::string inputrawbinfile= fPixJsonParser.at("Inputfile");
     std::string outputrootfile = fPixJsonParser.at("Outputfile");
-    PixTPCLog(PIXtpcDebug,(inputrawbinfile+outputrootfile).data(),false);
+    bool isdebug = fPixJsonParser.at("Isdebug");
+    PixTPCLog(PIXtpcDebug,(inputrawbinfile+" "+outputrootfile).data(),false);
     
     auto myConverter = new RawdataConverter(inputrawbinfile,outputrootfile);
+    if(isdebug)
+        myConverter->EnableUnpackgeDebug();
+    else
+        myConverter->DisableUnpackgeDebug();
+
+    if(isdebug && fPixJsonParser.contains("Debughistconfig"))
+    {
+        auto parasobj = fPixJsonParser.at("Debughistconfig");
+        TaskConfigStruct::HistConfigList histconfiglist = parasobj;
+        myConverter->ConfigDebugHist(histconfiglist);
+        PixTPCLog(PIXtpcDebug,"=======================",false);
+        std::cout<<" Dim        "<<histconfiglist.Dim<<"\n"
+                 <<" Histbins   ["<<histconfiglist.Histbins[0]<<","<<histconfiglist.Histbins[1]<<"]\n"
+                 <<" HistXYstart["<<histconfiglist.HistXYstart[0]<<","<<histconfiglist.HistXYstart[1]<<"]\n"
+                 <<" HistXYend  ["<<histconfiglist.HistXYend[0]<<","<<histconfiglist.HistXYend[0]<<"]"<<std::endl;
+    }
     auto flags1 = myConverter->DoUnpackageRawdata2ROOT();
     //auto myCoverter = new RawdataConverter("/mnt/e/WorkSpace/DESYBeam_Test/test/TEPIX_test_canwen/0619_new_4/data_lg_300ns.dat_r.dat");
     //myCoverter->DoUnpackage();
+
+    if(isdebug)
+    {
+        auto mycDebug = new TCanvas("mycDebug","mycDebug",800,600);
+        mycDebug->SetGrid();
+        auto histdebug = myConverter->GetDebugHist();
+        histdebug->SetStats(0);
+        histdebug->DrawCopy();
+        PixTPCLog(PIXtpcDebug,Form("UnderFlow = %f , OverFlow = %f",histdebug->GetBinContent(0),histdebug->GetBinContent(histdebug->GetNbinsX()+1)),false);
+    }
+
     delete myConverter;
     PixTPCLog(PIXtpcDebug,"End of StartUnpackage()",false);
 }
