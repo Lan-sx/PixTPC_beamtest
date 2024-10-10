@@ -22,6 +22,7 @@
 #include "TRandom3.h"
 
 //Users
+#include "JsonStruct.h"
 #include "RawdataConverter.h"
 #include "Processor.h"
 #include "PixHitRecoSimpleProcessor.h"
@@ -31,41 +32,6 @@ using PixJson = nlohmann::json;
 
 //extern global chip chn mapping, .csv file must be provided in task.json file
 extern std::vector<std::pair<int,int>> GlobalMaps;
-
-//define namespace for json parser
-namespace TaskConfigStruct
-{
-//structure for Generate simulation data
-struct GenSimDataParsList
-{
-    bool Isdebug;
-    int Nevts;
-    std::string Particle;
-    double Momentum;
-    double MomentumReso;
-    double InitialPos[3];
-    double InitialDir[3];
-
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(GenSimDataParsList,Isdebug,Nevts,Particle,Momentum,MomentumReso,InitialPos,InitialDir)
-};
-
-//structure for TPChitReco 
-struct PixTPChitRecoParsList
-{
-    bool Isdebug;
-    bool EquivalentPad;
-    int Processorid;
-    int NumOfColMerge;
-    std::string Inputfile;
-    std::string Inputbranch;
-    std::string Outputfile;
-    std::string Outputbranch;
-
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(PixTPChitRecoParsList,Isdebug,EquivalentPad,Processorid,NumOfColMerge,
-                                   Inputfile,Inputbranch,Outputfile,Outputbranch)
-};
-
-}
 
 class ProcessManager : public TObjArray
 {
