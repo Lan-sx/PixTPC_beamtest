@@ -19,17 +19,13 @@
 #include "TTree.h"
 
 //User
+#include "JsonStruct.h"
 #include "Processor.h"
-#include "ProcessManager.h"
 #include "PixelMatrix.h"
 #include "BeamUnities.h"
 #include "PixelTPCdata.h"
 #include "MCTrackdata.h"
 
-//forward declare
-namespace TaskConfigStruct{
-    struct PixTPChitRecoParsList;
-}
 
 class PixHitRecoSimpleProcessor : public Processor
 {
