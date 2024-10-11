@@ -50,7 +50,7 @@ public:
     //Switch debug 
     void EnableUnpackgeDebug() { fIsdebug = true; } 
     void DisableUnpackgeDebug() { fIsdebug = false; }
-    decltype(auto) GetDebugHist() { return fHistdebug; }
+    decltype(auto) GetDebugHistVec() { return fHistdebugVec; }
     
     //Set/Config Debug histogram bins,start bins, end bins when EnableUnpackgeDebug
     void  ConfigDebugHist(TaskConfigStruct::HistConfigList inputhistconfig);
@@ -79,9 +79,10 @@ private:
     PixelTPCdata* fPixtpcdata;
     
     //histogram config, used in debug
-    TaskConfigStruct::HistConfigList fHistconfig;
+    //TaskConfigStruct::HistConfigList fHistconfig;
     //histogram for debug
-    std::shared_ptr<TH1D> fHistdebug;
+    std::vector<shared_ptr<TH1D>> fHistdebugVec;
+
 };
 
 

@@ -97,11 +97,11 @@ void ProcessManager::StartUnpackage()
         auto parasobj = fPixJsonParser.at("Debughistconfig");
         TaskConfigStruct::HistConfigList histconfiglist = parasobj;
         myConverter->ConfigDebugHist(histconfiglist);
-        PixTPCLog(PIXtpcDebug,"=======================",false);
-        std::cout<<" Dim        "<<histconfiglist.Dim<<"\n"
-                 <<" Histbins   ["<<histconfiglist.Histbins[0]<<","<<histconfiglist.Histbins[1]<<"]\n"
-                 <<" HistXYstart["<<histconfiglist.HistXYstart[0]<<","<<histconfiglist.HistXYstart[1]<<"]\n"
-                 <<" HistXYend  ["<<histconfiglist.HistXYend[0]<<","<<histconfiglist.HistXYend[0]<<"]"<<std::endl;
+        //PixTPCLog(PIXtpcDebug,"=======================",false);
+        //std::cout<<" Dim        "<<histconfiglist.Dim<<"\n"
+        //         <<" Histbins   ["<<histconfiglist.Histbins[0]<<","<<histconfiglist.Histbins[1]<<"]\n"
+        //         <<" HistXYstart["<<histconfiglist.HistXYstart[0]<<","<<histconfiglist.HistXYstart[1]<<"]\n"
+        //         <<" HistXYend  ["<<histconfiglist.HistXYend[0]<<","<<histconfiglist.HistXYend[0]<<"]"<<std::endl;
     }
     auto flags1 = myConverter->DoUnpackageRawdata2ROOT();
     //auto myCoverter = new RawdataConverter("/mnt/e/WorkSpace/DESYBeam_Test/test/TEPIX_test_canwen/0619_new_4/data_lg_300ns.dat_r.dat");
@@ -109,12 +109,51 @@ void ProcessManager::StartUnpackage()
 
     if(isdebug)
     {
-        auto mycDebug = new TCanvas("mycDebug","mycDebug",800,600);
-        mycDebug->SetGrid();
-        auto histdebug = myConverter->GetDebugHist();
-        histdebug->SetStats(0);
-        histdebug->DrawCopy();
-        PixTPCLog(PIXtpcDebug,Form("UnderFlow = %f , OverFlow = %f",histdebug->GetBinContent(0),histdebug->GetBinContent(histdebug->GetNbinsX()+1)),false);
+        auto histdebugvec = myConverter->GetDebugHistVec();
+        auto mycDebugQ = new TCanvas("mycDebugQ","mycDebugQ",800,800);
+        mycDebugQ->Divide(2,2);
+        for(int ii=0;ii<4;++ii)
+        {
+            mycDebugQ->cd(ii+1);
+            gPad->SetGrid();
+            for(int mm=0;mm<4;++mm)
+            {
+                histdebugvec[ii*4+mm]->SetStats(0);
+                histdebugvec[ii*4+mm]->SetLineColor(ColorArray[mm+3]);
+
+                if(mm==0)
+                    histdebugvec[ii*4+mm]->DrawCopy();
+                else
+                    histdebugvec[ii*4+mm]->DrawCopy("SAME");
+
+                PixTPCLog(PIXtpcDebug,Form("%s : UnderFlow = %f , OverFlow = %f",
+                                           histdebugvec[ii*4+mm]->GetName(),
+                                           histdebugvec[ii*4+mm]->GetBinContent(0),
+                                           histdebugvec[ii*4+mm]->GetBinContent(histdebugvec[ii*4+mm]->GetNbinsX()+1)
+                                           ),
+                                           false);
+            }
+            gPad->BuildLegend();
+        }
+        auto mycDebugT = new TCanvas("mycDebugT","mycDebugT",800,800);
+        mycDebugT->Divide(2,2);
+        for(int ii=0;ii<4;++ii)
+        {
+            mycDebugT->cd(ii+1);
+            gPad->SetGrid();
+            for(int mm=0;mm<4;++mm)
+            {
+                histdebugvec[ii*4+mm+16]->SetStats(0);
+                histdebugvec[ii*4+mm+16]->SetLineColor(ColorArray[mm+3]);
+
+                if(mm==0)
+                    histdebugvec[ii*4+mm+16]->DrawCopy();
+                else
+                    histdebugvec[ii*4+mm+16]->DrawCopy("SAME");
+            }
+            gPad->BuildLegend();
+        }
+
     }
 
     delete myConverter;
