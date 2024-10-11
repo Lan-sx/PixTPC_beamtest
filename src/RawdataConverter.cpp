@@ -95,8 +95,6 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
         }
 
         int chipNumber = static_cast<int>(vBuffer.at(3));
-        if(fIsdebug)
-            fHistdebug->Fill(chipNumber);
 
         vector<bool> binarySeq;
 
