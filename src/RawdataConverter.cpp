@@ -15,8 +15,6 @@ RawdataConverter::RawdataConverter(std::string& rawdatafilename,std::string& raw
     f_file->open(rawdatafilename,ios::in | ios::binary);
     if(!f_file->is_open())
         throw std::runtime_error("FILE DOES NOT EXIST!");
-    
-    fHistdebug = nullptr;
 }
 
 RawdataConverter::RawdataConverter(const char* rawdatafilename) : fIsdebug(false),fPixtpcdata(nullptr)
@@ -174,7 +172,7 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
                         ampBits[ll] = (ll==13) ? ampBits[ll] : (ampBits[ll+1] ^ ampBits[ll]); 
                     }
                     
-                    if(fIsdebug && i_evt==1 && chipNumber==3)
+                    if(fIsdebug && i_evt==0 && chipNumber==0)
                     {
                         fHistdebug->Fill(double(ampBits.to_ulong()));
                     }
@@ -185,62 +183,6 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
         binarySeq.clear();
     }//end of data
 
-#if 0
-    vBuffer.resize(1);
-    f_file->read(reinterpret_cast<char*>(vBuffer.data()),1);
-
-    std::printf("===Head: %X\n",static_cast<int>(vBuffer.at(0)));
-    std::printf("===Head %s\n",std::bitset<8>(static_cast<unsigned char>(vBuffer.at(0))).to_string().c_str());
-
-    vBuffer.clear(); 
-    vBuffer.resize(1);
-    f_file->read(reinterpret_cast<char*>(vBuffer.data()),1);
-
-    std::printf("===Channel Number %s\n",std::bitset<8>(static_cast<unsigned char>(vBuffer.at(0))).to_string().c_str());
-
-    vBuffer.clear(); 
-    vBuffer.resize(8);
-    f_file->read(reinterpret_cast<char*>(vBuffer.data()),8);
-
-    std::cout<<"TimeStamp: ";
-    for(auto byte : vBuffer) 
-    {
-        cout<<std::hex<<std::setw(2)<<std::setfill('0')
-            <<static_cast<int>(static_cast<unsigned char>(byte))<<" ";
-    }
-    cout<<endl;
-
-    vBuffer.clear(); 
-    vBuffer.resize(4);
-    f_file->read(reinterpret_cast<char*>(vBuffer.data()),4);
-
-    std::cout<<"Trigger Number: ";
-    for(auto byte : vBuffer) 
-    {
-        cout<<std::setw(2)
-            <<static_cast<int>(static_cast<unsigned char>(byte))<<" ";
-    }
-    cout<<endl;
-
-
-    vBuffer.clear(); 
-    vBuffer.resize(16);
-    f_file->read(reinterpret_cast<char*>(vBuffer.data()),16);
-    vector<bool> DataBinSeq;  
-    for(const auto &byte : vBuffer) 
-    {
-        for(int mm=7; mm >= 0; --mm)
-        {
-            unsigned char bit = (byte >> mm) & 1; 
-            DataBinSeq.push_back(bit);
-        }
-    }
-
-    std::cout<<"DataBinSeq: ";
-    for(auto bit : DataBinSeq)
-        cout<<bit;
-    cout<<endl;
-#endif
 
     f_file->close();
     if(ChippackageLengthWarning)
