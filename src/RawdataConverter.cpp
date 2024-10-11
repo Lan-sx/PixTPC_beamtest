@@ -15,6 +15,8 @@ RawdataConverter::RawdataConverter(std::string& rawdatafilename,std::string& raw
     f_file->open(rawdatafilename,ios::in | ios::binary);
     if(!f_file->is_open())
         throw std::runtime_error("FILE DOES NOT EXIST!");
+    
+    fHistdebug = nullptr;
 }
 
 RawdataConverter::RawdataConverter(const char* rawdatafilename) : fIsdebug(false),fPixtpcdata(nullptr)
@@ -34,11 +36,6 @@ RawdataConverter::~RawdataConverter()
         //PixTPCLog(PIXtpcDebug,"fPixtpcdata  Dtors",true);
         delete fPixtpcdata;
     }
-    //if(fIsdebug)
-    //{
-    //    for(auto itemhist : fHistdebugVec)
-    //        delete itemhist;
-    //}
 }
 
 void  RawdataConverter::ConfigDebugHist(TaskConfigStruct::HistConfigList inputhistconfig)
@@ -48,29 +45,13 @@ void  RawdataConverter::ConfigDebugHist(TaskConfigStruct::HistConfigList inputhi
         PixTPCLog(PIXtpcWARNING,"Only used in debug mode",false);
         return;
     }
-    
-    int NumberOfhists = inputhistconfig.NumberOfHist;
-    fHistdebugVec.reserve(NumberOfhists);
-
-    for(int ihist=0; ihist<NumberOfhists; ++ihist)
-    {
-        if(ihist<NumberOfhists/2)
-        {
-            fHistdebugVec.emplace_back(std::make_shared<TH1D>(Form("hQchip%dtrig%d",ihist/4,ihist%4),
-                                                           ";Amplitude [LSB];Cnts",
-                                                           inputhistconfig.Histbins[0],
-                                                           inputhistconfig.HistXYstart[0],
-                                                           inputhistconfig.HistXYend[0]));
-        }
-        else
-        {
-            fHistdebugVec.emplace_back(std::make_shared<TH1D>(Form("hTchip%dtrig%d",(ihist-16)/4,(ihist-16)%4),
-                                                           ";Time [LSB];Cnts",
-                                                           inputhistconfig.Histbins[1],
-                                                           inputhistconfig.HistXYstart[1],
-                                                           inputhistconfig.HistXYend[1]));
-        }
-    }
+    fHistconfig.Dim = inputhistconfig.Dim;
+    fHistconfig.Histbins[0]=inputhistconfig.Histbins[0];
+    fHistconfig.Histbins[1]=inputhistconfig.Histbins[1];
+    fHistconfig.HistXYstart[0]=inputhistconfig.HistXYstart[0];
+    fHistconfig.HistXYstart[1]=inputhistconfig.HistXYstart[1];
+    fHistconfig.HistXYend[0]=inputhistconfig.HistXYend[0];
+    fHistconfig.HistXYend[1]=inputhistconfig.HistXYend[1];
 }
 
 bool RawdataConverter::DoUnpackageRawdata2ROOT()
@@ -82,7 +63,14 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
     //buffer vector
     vector<unsigned char> vBuffer;
 
-    
+    if(fIsdebug)
+    {
+        //fHistdebug = std::make_shared<TH1D>("hChips",";chip idx;Cnts",4,0,4);
+        fHistdebug = std::make_shared<TH1D>("hChips",";Amp. [LSB];Cnts",fHistconfig.Histbins[0],
+                                                                        fHistconfig.HistXYstart[0],
+                                                                        fHistconfig.HistXYend[0]);
+    }
+
     bool ChippackageLengthWarning = false;
     //loop all packages 
     for(size_t ii=1; ii<vheaderPos.size();++ii)
@@ -100,7 +88,7 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
         vBuffer.resize(bufferlength);
         f_file->read(reinterpret_cast<char*>(vBuffer.data()),bufferlength);
 
-        if(fIsdebug && ii<20)
+        if(fIsdebug && ii<2)
         {
             printHeaderTail(vBuffer);    
             printChipNumber(vBuffer);
@@ -109,15 +97,8 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
         }
 
         int chipNumber = static_cast<int>(vBuffer.at(3));
-
-        //if(chipNumber==2)
-        //{
-        //    PixTPCLog(PIXtpcDebug,Form("Chip2 Tail:%X %X",static_cast<int>(vBuffer.at(bufferlength-2)),
-        //                                                  static_cast<int>(vBuffer.at(bufferlength-1))),false);
-        //}
-        
-        //if(fIsdebug)
-        //    fHistdebugVec->Fill(chipNumber);
+        if(fIsdebug)
+            fHistdebug->Fill(chipNumber);
 
         vector<bool> binarySeq;
 
@@ -193,16 +174,9 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
                         ampBits[ll] = (ll==13) ? ampBits[ll] : (ampBits[ll+1] ^ ampBits[ll]); 
                     }
                     
-                    if(fIsdebug)
+                    if(fIsdebug && i_evt==1 && chipNumber==3)
                     {
-                        if((chipNumber*4+i_evt)>31 || (chipNumber*4+i_evt+16)>31)
-                        {
-                            continue;
-                            //throw std::out_of_range("Out of Hist Vec range");
-                        }
-
-                        fHistdebugVec[chipNumber*4+i_evt]->Fill(double(ampBits.to_ulong()));
-                        fHistdebugVec[chipNumber*4+i_evt+16]->Fill(double(timeBits.to_ulong()));
+                        fHistdebug->Fill(double(ampBits.to_ulong()));
                     }
 
                 }//end of channel evts 
@@ -212,6 +186,18 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
     }//end of data
 
 #if 0
+    vBuffer.resize(1);
+    f_file->read(reinterpret_cast<char*>(vBuffer.data()),1);
+
+    std::printf("===Head: %X\n",static_cast<int>(vBuffer.at(0)));
+    std::printf("===Head %s\n",std::bitset<8>(static_cast<unsigned char>(vBuffer.at(0))).to_string().c_str());
+
+    vBuffer.clear(); 
+    vBuffer.resize(1);
+    f_file->read(reinterpret_cast<char*>(vBuffer.data()),1);
+
+    std::printf("===Channel Number %s\n",std::bitset<8>(static_cast<unsigned char>(vBuffer.at(0))).to_string().c_str());
+
     vBuffer.clear(); 
     vBuffer.resize(8);
     f_file->read(reinterpret_cast<char*>(vBuffer.data()),8);
@@ -228,13 +214,37 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
     vBuffer.resize(4);
     f_file->read(reinterpret_cast<char*>(vBuffer.data()),4);
 
-#endif
-    //close f_file pointer
-    f_file->close();
+    std::cout<<"Trigger Number: ";
+    for(auto byte : vBuffer) 
+    {
+        cout<<std::setw(2)
+            <<static_cast<int>(static_cast<unsigned char>(byte))<<" ";
+    }
+    cout<<endl;
 
+
+    vBuffer.clear(); 
+    vBuffer.resize(16);
+    f_file->read(reinterpret_cast<char*>(vBuffer.data()),16);
+    vector<bool> DataBinSeq;  
+    for(const auto &byte : vBuffer) 
+    {
+        for(int mm=7; mm >= 0; --mm)
+        {
+            unsigned char bit = (byte >> mm) & 1; 
+            DataBinSeq.push_back(bit);
+        }
+    }
+
+    std::cout<<"DataBinSeq: ";
+    for(auto bit : DataBinSeq)
+        cout<<bit;
+    cout<<endl;
+#endif
+
+    f_file->close();
     if(ChippackageLengthWarning)
         PixTPCLog(PIXtpcWARNING,"Chips data length error !!!",false);
-
     return true;
 }
 
