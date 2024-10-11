@@ -60,9 +60,9 @@ enum LogsFlag {
     PIXtpcERROR
 };
 
-#define PixTPCLog(flags,message) cepcPixTPClog(flags,__FILE__,__LINE__,message)
+#define PixTPCLog(flags,message,islocated) cepcPixTPClog(flags,__FILE__,__LINE__,message,islocated)
 
-void cepcPixTPClog(int flags, const std::string& file,int line,const std::string& message);
+void cepcPixTPClog(int flags, const std::string& file,int line,const std::string& message,bool islocated=true);
 
 //Colors array for visualization
 constexpr int ColorArray[9] = {kBlack,kBlue+1,kPink,

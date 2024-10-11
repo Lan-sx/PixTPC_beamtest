@@ -22,6 +22,8 @@
 #include "TRandom3.h"
 
 //Users
+#include "JsonStruct.h"
+#include "RawdataConverter.h"
 #include "Processor.h"
 #include "PixHitRecoSimpleProcessor.h"
 #include "GenSimData.h"
@@ -30,42 +32,6 @@ using PixJson = nlohmann::json;
 
 //extern global chip chn mapping, .csv file must be provided in task.json file
 extern std::vector<std::pair<int,int>> GlobalMaps;
-
-//define namespace for json parser
-namespace TaskConfigStruct
-{
-//structure for Generate simulation data
-struct GenSimDataParsList
-{
-    bool Isdebug;
-    int Nevts;
-    std::string Particle;
-    double Momentum;
-    double MomentumReso;
-    double InitialPos[3];
-    double InitialDir[3];
-
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(GenSimDataParsList,Isdebug,Nevts,Particle,Momentum,MomentumReso,InitialPos,InitialDir)
-};
-
-//structure for TPChitReco 
-struct PixTPChitRecoParsList
-{
-    bool Isdebug;
-    bool EquivalentPad;
-    int Processorid;
-    int NumOfColMerge;
-    std::string Inputfile;
-    std::string Inputbranch;
-    std::string Outputfile;
-    std::string Outputbranch;
-
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(PixTPChitRecoParsList,Isdebug,EquivalentPad,Processorid,NumOfColMerge,
-                                   Inputfile,Inputbranch,Outputfile,Outputbranch)
-};
-
-}
-
 
 class ProcessManager : public TObjArray
 {
@@ -80,7 +46,7 @@ public:
     {
         Rawdata2ROOT=0,
         GenMCdata,
-        TPChitReco,
+        TPCEvtsReco,
         TPCcalibration
     };
 
@@ -96,12 +62,14 @@ public:
 protected:
     // Initial GlobalMaps from json
     void InitialMapsFromJson();
+    //Convert raw binary data to .root data
+    void StartUnpackage();
     // Default, print usage info
     void PrintUsage();
     // Generate MC data, CEPCPixtpcTaskType: GenMCdata, 1 in json
     void StartGenMCdata();
     // Reco PixTPC hits, CEPCPixtpcTaskType: TPChitReco, 2 in json 
-    void StartRecoPixTPChits();
+    void StartRecoPixTPCEvts();
 
 private:
     std::string fTaskjsonfile;

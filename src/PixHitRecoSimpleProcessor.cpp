@@ -68,7 +68,7 @@ void PixHitRecoSimpleProcessor::InitAction()
     else
         f_tree_in->SetBranchAddress(fInputBranchName.c_str(),&f_PixTPCdata);
 
-    PixTPCLog(PIXtpcINFO,Form("%s InitAction Done!",this->GetProcessorName().c_str()));
+    PixTPCLog(PIXtpcINFO,Form("%s InitAction Done!",this->GetProcessorName().c_str()),false);
 }
 
 void PixHitRecoSimpleProcessor::ProcessEventAction()
@@ -120,7 +120,7 @@ void PixHitRecoSimpleProcessor::EndAction()
 {
     if(fIsdebug)
         ShowDebugCanvas();
-    PixTPCLog(PIXtpcINFO,Form("This is end of %s!!!",this->GetProcessorName().c_str()));
+    PixTPCLog(PIXtpcINFO,Form("This is end of %s!!!",this->GetProcessorName().c_str()),false);
 }
 
 void PixHitRecoSimpleProcessor::ShowDebugCanvas()
@@ -130,7 +130,7 @@ void PixHitRecoSimpleProcessor::ShowDebugCanvas()
     auto Matrix10x300 = new PixelMatrix; 
     Matrix10x300->PixelTPCdata2PixelMatrix(f_PixTPCdata);
     if(Matrix10x300->GetMaxMinElement().second < NumOfe_cut)
-        PixTPCLog(PIXtpcWARNING,"The min element < NumOfe_cut, check GenSimData or Rawdata2ROOT");
+        PixTPCLog(PIXtpcWARNING,"The min element < NumOfe_cut, check GenSimData or Rawdata2ROOT",true);
     //Create a Canvas
     auto myc = new TCanvas(Form("C_%smat10x300",this->GetProcessorName().c_str()),"",300,600);
     myc->SetGrid();
@@ -167,7 +167,7 @@ void PixHitRecoSimpleProcessor::ShowDebugCanvas()
 void PixHitRecoSimpleProcessor::DebugPrint()
 {
     if(fIsdebug)
-        PixTPCLog(PIXtpcDebug,Form("There are %lld entries in input file!!!",f_tree_in->GetEntries()));
+        PixTPCLog(PIXtpcDebug,Form("There are %lld entries in input file!!!",f_tree_in->GetEntries()),false);
 }
 
 void PixHitRecoSimpleProcessor::InitialHistRecohits(int numofhist)
@@ -192,7 +192,7 @@ void PixHitRecoSimpleProcessor::UsePixelChargeCenterMethod()
     if(__COL__%fNumOfColMerge!=0)
     {
         fNumOfColMerge=10;
-        PixTPCLog(PIXtpcWARNING,"__COL__ % NumOfColMerge!=0, NumOfColMerge set to 10");
+        PixTPCLog(PIXtpcWARNING,"__COL__ % NumOfColMerge!=0, NumOfColMerge set to 10",true);
     }
 
     if(fIsdebug)
@@ -249,8 +249,9 @@ void PixHitRecoSimpleProcessor::UsePixelChargeCenterMethod()
         }// end of a track
         if(fIsdebug && i_entry<10)
         {
-            std::cout<<"DebugPrint reco hit:"<<"("<<vRecoHits.at(0).x()<<","<<vRecoHits.at(0).y()<<","<<vRecoHits.at(0).z()<<")"<<"\n"
-                <<"("<<vRecoHits.at(1).x()<<","<<vRecoHits.at(1).y()<<","<<vRecoHits.at(1).z()<<")"<<std::endl;
+            std::cout<<"DebugPrint reco hit:"<<"\n"<<
+                "("<<vRecoHits.at(0).x()<<","<<vRecoHits.at(0).y()<<","<<vRecoHits.at(0).z()<<")"<<"\n"<<
+                "("<<vRecoHits.at(1).x()<<","<<vRecoHits.at(1).y()<<","<<vRecoHits.at(1).z()<<")"<<std::endl;
         }
         //Fill tree
         recoHitsdata->FillClusters(vRecoHits);
@@ -274,12 +275,12 @@ void PixHitRecoSimpleProcessor::UsePixelChargeCenterMethod()
             //delete fHistRecohitsArray[ihist];
         }
         delete []fHistRecohitsArray;
-        PixTPCLog(PIXtpcDebug,"Debug histograms write done!");
+        PixTPCLog(PIXtpcDebug,"Debug histograms write done!",false);
     }
 
     outfile->Close();
     
-    PixTPCLog(PIXtpcINFO,"Reco data Write Done, using merged cols Pixel Charge center method!");
+    PixTPCLog(PIXtpcINFO,"Reco data Write Done, using merged cols Pixel Charge center method!",false);
 }
 
 void PixHitRecoSimpleProcessor::UseEquivalentPadMethod()
@@ -296,7 +297,7 @@ void PixHitRecoSimpleProcessor::UseEquivalentPadMethod()
     if(__COL__%fNumOfColMerge!=0)
     {
         fNumOfColMerge=10;
-        PixTPCLog(PIXtpcWARNING,"__COL__ % NumOfColMerge!=0, NumOfColMerge set to 10");
+        PixTPCLog(PIXtpcWARNING,"__COL__ % NumOfColMerge!=0, NumOfColMerge set to 10",true);
     }
 
     if(fIsdebug)
@@ -353,7 +354,8 @@ void PixHitRecoSimpleProcessor::UseEquivalentPadMethod()
         }// end of a track
         if(fIsdebug && i_entry<10)
         {
-            std::cout<<"DebugPrint reco hit:"<<"("<<vRecoHits.at(0).x()<<","<<vRecoHits.at(0).y()<<","<<vRecoHits.at(0).z()<<")"<<"\n"
+            std::cout<<"DebugPrint reco hit:"<<"\n"
+                <<"("<<vRecoHits.at(0).x()<<","<<vRecoHits.at(0).y()<<","<<vRecoHits.at(0).z()<<")"<<"\n"
                 <<"("<<vRecoHits.at(1).x()<<","<<vRecoHits.at(1).y()<<","<<vRecoHits.at(1).z()<<")"<<std::endl;
         }
         //Fill tree
@@ -377,12 +379,12 @@ void PixHitRecoSimpleProcessor::UseEquivalentPadMethod()
             //delete fHistRecohitsArray[ihist];
         }
         delete []fHistRecohitsArray;
-        PixTPCLog(PIXtpcDebug,"Debug histograms write done!");
+        PixTPCLog(PIXtpcDebug,"Debug histograms write done!",false);
     }
 
     outfile->Close();
 
-    PixTPCLog(PIXtpcINFO,"Reco data Write Done, using EquivalentPad method!");
+    PixTPCLog(PIXtpcINFO,"Reco data Write Done, using EquivalentPad method!",false);
 }
 
 

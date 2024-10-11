@@ -8,7 +8,6 @@
  * ******************************************************************/
 #include "ProcessManager.h"
 
-
 ProcessManager::ProcessManager() : fTaskjsonfile("")
 {}
 
@@ -35,32 +34,33 @@ int ProcessManager::CEPCPixtpcRun()
     std::string TaskComments = fPixJsonParser.at("Comments");
     int Tasktype = fPixJsonParser.at("Tasktype");
     this->InitialMapsFromJson();
-    std::printf("==============================================\n");
-    std::printf("> Start a Task: %s\n",TaskComments.data());
-    std::printf("==============================================\n");
+    PixTPCLog(PIXtpcINFO,"==============================================",false);
+    PixTPCLog(PIXtpcINFO,Form("> Start a Task: %s",TaskComments.c_str()),false);
+    PixTPCLog(PIXtpcINFO,"==============================================",false);
     
     switch(Tasktype)
     {
         case Rawdata2ROOT:
-            std::printf("Raw data to root file!\n");
+            std::printf("@@@Raw data to root file!\n");
+            this->StartUnpackage();
             break;
         case GenMCdata:
-            std::printf("GenMCdata!\n");
+            std::printf("@@@GenMCdata!\n");
             this->StartGenMCdata();
             break;
-        case TPChitReco:
-            std::printf("TPC hits reconstruction!\n");
-            this->StartRecoPixTPChits();
+        case TPCEvtsReco:
+            std::printf("@@@TPC evts reconstruction!\n");
+            this->StartRecoPixTPCEvts();
             break;
         case TPCcalibration:
-            std::printf("TPC calibration!\n");
+            std::printf("@@@TPC calibration!\n");
             break;
         default:
             this->PrintUsage();
-            PixTPCLog(PIXtpcINFO,"Dummy task!");
+            PixTPCLog(PIXtpcINFO,"Dummy task!",false);
     }
 
-    std::printf("> End of Task:%s\n",TaskComments.data());
+    PixTPCLog(PIXtpcINFO,Form("> End of Task:%s",TaskComments.c_str()),false);
     return 0;
 }
 
@@ -72,10 +72,53 @@ void ProcessManager::InitialMapsFromJson()
     }
     else
     {
-        PixTPCLog(PIXtpcERROR,"No Chip Chn map file");
+        PixTPCLog(PIXtpcERROR,"No Chip Chn map file",true);
         throw std::runtime_error("No Chip Chn map file in task json");
     }
         
+}
+
+void ProcessManager::StartUnpackage()
+{
+    PixTPCLog(PIXtpcDebug,"Test print in StartUnpackage()",false);
+    std::string inputrawbinfile= fPixJsonParser.at("Inputfile");
+    std::string outputrootfile = fPixJsonParser.at("Outputfile");
+    bool isdebug = fPixJsonParser.at("Isdebug");
+    PixTPCLog(PIXtpcDebug,(inputrawbinfile+" "+outputrootfile).data(),false);
+    
+    auto myConverter = new RawdataConverter(inputrawbinfile,outputrootfile);
+    if(isdebug)
+        myConverter->EnableUnpackgeDebug();
+    else
+        myConverter->DisableUnpackgeDebug();
+
+    if(isdebug && fPixJsonParser.contains("Debughistconfig"))
+    {
+        auto parasobj = fPixJsonParser.at("Debughistconfig");
+        TaskConfigStruct::HistConfigList histconfiglist = parasobj;
+        myConverter->ConfigDebugHist(histconfiglist);
+        PixTPCLog(PIXtpcDebug,"=======================",false);
+        std::cout<<" Dim        "<<histconfiglist.Dim<<"\n"
+                 <<" Histbins   ["<<histconfiglist.Histbins[0]<<","<<histconfiglist.Histbins[1]<<"]\n"
+                 <<" HistXYstart["<<histconfiglist.HistXYstart[0]<<","<<histconfiglist.HistXYstart[1]<<"]\n"
+                 <<" HistXYend  ["<<histconfiglist.HistXYend[0]<<","<<histconfiglist.HistXYend[0]<<"]"<<std::endl;
+    }
+    auto flags1 = myConverter->DoUnpackageRawdata2ROOT();
+    //auto myCoverter = new RawdataConverter("/mnt/e/WorkSpace/DESYBeam_Test/test/TEPIX_test_canwen/0619_new_4/data_lg_300ns.dat_r.dat");
+    //myCoverter->DoUnpackage();
+
+    if(isdebug)
+    {
+        auto mycDebug = new TCanvas("mycDebug","mycDebug",800,600);
+        mycDebug->SetGrid();
+        auto histdebug = myConverter->GetDebugHist();
+        histdebug->SetStats(0);
+        histdebug->DrawCopy();
+        PixTPCLog(PIXtpcDebug,Form("UnderFlow = %f , OverFlow = %f",histdebug->GetBinContent(0),histdebug->GetBinContent(histdebug->GetNbinsX()+1)),false);
+    }
+
+    delete myConverter;
+    PixTPCLog(PIXtpcDebug,"End of StartUnpackage()",false);
 }
 
 void ProcessManager::StartGenMCdata()
@@ -131,11 +174,12 @@ void ProcessManager::StartGenMCdata()
     }
 }
 
-void ProcessManager::StartRecoPixTPChits()
+void ProcessManager::StartRecoPixTPCEvts()
 {
     if(fPixJsonParser.contains("RecoProcessor")) 
     {
         auto recoprocessor = fPixJsonParser.at("RecoProcessor");
+        //Reco Pix TPC hits or track using different processors
         if(recoprocessor == "PixHitRecoSimpleProcessor") 
         {
             auto recoprocessorArray = fPixJsonParser.at("RecoProcessorArray");
@@ -152,7 +196,7 @@ void ProcessManager::StartRecoPixTPChits()
             //TODO using PixClusterSepRecoProcessor, under developing 
         }
 
-        PixTPCLog(PIXtpcINFO,Form("There are %d processors added! ###Start Processing...",this->GetEntries()));
+        PixTPCLog(PIXtpcINFO,Form("There are %d processors added! ###Start Processing...",this->GetEntries()),false);
         this->StartProcessing();
         
     }
@@ -167,7 +211,7 @@ void ProcessManager::PrintUsage()
     std::printf("========================================\n");
     std::printf("Tasktype: [0], Raw data to ROOT         \n");
     std::printf("Tasktype: [1], generate MC data         \n");
-    std::printf("Tasktype: [2], TPC hits reconstruction  \n");
+    std::printf("Tasktype: [2], TPC evts reconstruction  \n");
     std::printf("Tasktype: [3], TPC calibration          \n");
     std::printf("========================================\n");
 }
