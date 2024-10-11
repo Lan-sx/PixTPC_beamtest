@@ -49,11 +49,12 @@ struct PixTPChitRecoParsList
 //structure for Histograms (debug,plots etc) ,TH1 TH2
 struct HistConfigList
 {
+    int NumberOfHist;
     int Dim;       
     int Histbins[2];
     double HistXYstart[2];
     double HistXYend[2]; 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(HistConfigList,Dim,Histbins,HistXYstart,HistXYend)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(HistConfigList,NumberOfHist,Dim,Histbins,HistXYstart,HistXYend)
 };
 
 }
