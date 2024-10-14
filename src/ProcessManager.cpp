@@ -68,7 +68,48 @@ void ProcessManager::InitialMapsFromJson()
 {
     if(fPixJsonParser.contains("GlobalChipChnMaps")) 
     {
+        //from csv file
         GlobalMaps = BeamUnities::CreateChipChnToRowColMap(fPixJsonParser.at("GlobalChipChnMaps"));
+    }else if(fPixJsonParser.contains("GlobalChipChnMapsJson"))
+    {
+        //from json config file
+        auto map_pathjsonObj = fPixJsonParser.at("GlobalChipChnMapsJson");
+        auto map_path = map_pathjsonObj.get<std::string>();
+        //std::vector<int> vGlobalIdx;
+        std::vector<std::pair<int,int>> vMaps(__ROW__*__COL__,{-1,-1});
+        std::ifstream ifs(map_path.c_str());
+        if(!ifs.is_open())
+        {
+            throw std::runtime_error("Json Map file does not exist");
+        }
+
+        std::string line;
+        while(std::getline(ifs,line))
+        {
+            auto chipchnmapsJsonObj = PixJson::parse(line);
+            TaskConfigStruct::ChipChnMaps_V1 pixelIdx = chipchnmapsJsonObj.get<TaskConfigStruct::ChipChnMaps_V1>();
+            if(pixelIdx.isActived)
+            {
+                vMaps.at(pixelIdx.globalIdx)= std::make_pair(pixelIdx.chipchnIdx[0],
+                                                             pixelIdx.chipchnIdx[1]);
+                //vGlobalIdx.emplace_back(pixelIdx.globalIdx);
+            }
+        }
+        //PixTPCLog(PIXtpcDebug,Form("Global Idx size = %zu",vGlobalIdx.size()),false);
+        ifs.close();
+
+        GlobalMaps = vMaps;
+        PixTPCLog(PIXtpcINFO,"GlobalMaps initialized by json config file",false);
+#if 0
+        PixTPCLog(PIXtpcDebug,"End = !!!!!!!",false);
+        std::ofstream ofs_csv("./test.csv");
+        for(size_t idx=0; idx<__ROW__*__COL__;++idx)
+        {
+            ofs_csv<<idx<<","<<GlobalMaps.at(idx).first<<","<<GlobalMaps.at(idx).second<<std::endl;
+        }
+        ofs_csv.close();
+        PixTPCLog(PIXtpcDebug,"test.csv write done!",false);
+#endif
     }
     else
     {
