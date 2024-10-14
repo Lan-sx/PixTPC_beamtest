@@ -68,7 +68,48 @@ void ProcessManager::InitialMapsFromJson()
 {
     if(fPixJsonParser.contains("GlobalChipChnMaps")) 
     {
+        //from csv file
         GlobalMaps = BeamUnities::CreateChipChnToRowColMap(fPixJsonParser.at("GlobalChipChnMaps"));
+    }else if(fPixJsonParser.contains("GlobalChipChnMapsJson"))
+    {
+        //from json config file
+        auto map_pathjsonObj = fPixJsonParser.at("GlobalChipChnMapsJson");
+        auto map_path = map_pathjsonObj.get<std::string>();
+        //std::vector<int> vGlobalIdx;
+        std::vector<std::pair<int,int>> vMaps(__ROW__*__COL__,{-1,-1});
+        std::ifstream ifs(map_path.c_str());
+        if(!ifs.is_open())
+        {
+            throw std::runtime_error("Json Map file does not exist");
+        }
+
+        std::string line;
+        while(std::getline(ifs,line))
+        {
+            auto chipchnmapsJsonObj = PixJson::parse(line);
+            TaskConfigStruct::ChipChnMaps_V1 pixelIdx = chipchnmapsJsonObj.get<TaskConfigStruct::ChipChnMaps_V1>();
+            if(pixelIdx.isActived)
+            {
+                vMaps.at(pixelIdx.globalIdx)= std::make_pair(pixelIdx.chipchnIdx[0],
+                                                             pixelIdx.chipchnIdx[1]);
+                //vGlobalIdx.emplace_back(pixelIdx.globalIdx);
+            }
+        }
+        //PixTPCLog(PIXtpcDebug,Form("Global Idx size = %zu",vGlobalIdx.size()),false);
+        ifs.close();
+
+        GlobalMaps = vMaps;
+        PixTPCLog(PIXtpcINFO,"GlobalMaps initialized by json config file",false);
+#if 0
+        PixTPCLog(PIXtpcDebug,"End = !!!!!!!",false);
+        std::ofstream ofs_csv("./test.csv");
+        for(size_t idx=0; idx<__ROW__*__COL__;++idx)
+        {
+            ofs_csv<<idx<<","<<GlobalMaps.at(idx).first<<","<<GlobalMaps.at(idx).second<<std::endl;
+        }
+        ofs_csv.close();
+        PixTPCLog(PIXtpcDebug,"test.csv write done!",false);
+#endif
     }
     else
     {
@@ -97,11 +138,11 @@ void ProcessManager::StartUnpackage()
         auto parasobj = fPixJsonParser.at("Debughistconfig");
         TaskConfigStruct::HistConfigList histconfiglist = parasobj;
         myConverter->ConfigDebugHist(histconfiglist);
-        //PixTPCLog(PIXtpcDebug,"=======================",false);
-        //std::cout<<" Dim        "<<histconfiglist.Dim<<"\n"
-        //         <<" Histbins   ["<<histconfiglist.Histbins[0]<<","<<histconfiglist.Histbins[1]<<"]\n"
-        //         <<" HistXYstart["<<histconfiglist.HistXYstart[0]<<","<<histconfiglist.HistXYstart[1]<<"]\n"
-        //         <<" HistXYend  ["<<histconfiglist.HistXYend[0]<<","<<histconfiglist.HistXYend[0]<<"]"<<std::endl;
+        PixTPCLog(PIXtpcDebug,"=======================",false);
+        std::cout<<" Dim        "<<histconfiglist.Dim<<"\n"
+                 <<" Histbins   ["<<histconfiglist.Histbins[0]<<","<<histconfiglist.Histbins[1]<<"]\n"
+                 <<" HistXYstart["<<histconfiglist.HistXYstart[0]<<","<<histconfiglist.HistXYstart[1]<<"]\n"
+                 <<" HistXYend  ["<<histconfiglist.HistXYend[0]<<","<<histconfiglist.HistXYend[0]<<"]"<<std::endl;
     }
     auto flags1 = myConverter->DoUnpackageRawdata2ROOT();
     //auto myCoverter = new RawdataConverter("/mnt/e/WorkSpace/DESYBeam_Test/test/TEPIX_test_canwen/0619_new_4/data_lg_300ns.dat_r.dat");
@@ -109,51 +150,12 @@ void ProcessManager::StartUnpackage()
 
     if(isdebug)
     {
-        auto histdebugvec = myConverter->GetDebugHistVec();
-        auto mycDebugQ = new TCanvas("mycDebugQ","mycDebugQ",800,800);
-        mycDebugQ->Divide(2,2);
-        for(int ii=0;ii<4;++ii)
-        {
-            mycDebugQ->cd(ii+1);
-            gPad->SetGrid();
-            for(int mm=0;mm<4;++mm)
-            {
-                histdebugvec[ii*4+mm]->SetStats(0);
-                histdebugvec[ii*4+mm]->SetLineColor(ColorArray[mm+3]);
-
-                if(mm==0)
-                    histdebugvec[ii*4+mm]->DrawCopy();
-                else
-                    histdebugvec[ii*4+mm]->DrawCopy("SAME");
-
-                PixTPCLog(PIXtpcDebug,Form("%s : UnderFlow = %f , OverFlow = %f",
-                                           histdebugvec[ii*4+mm]->GetName(),
-                                           histdebugvec[ii*4+mm]->GetBinContent(0),
-                                           histdebugvec[ii*4+mm]->GetBinContent(histdebugvec[ii*4+mm]->GetNbinsX()+1)
-                                           ),
-                                           false);
-            }
-            gPad->BuildLegend();
-        }
-        auto mycDebugT = new TCanvas("mycDebugT","mycDebugT",800,800);
-        mycDebugT->Divide(2,2);
-        for(int ii=0;ii<4;++ii)
-        {
-            mycDebugT->cd(ii+1);
-            gPad->SetGrid();
-            for(int mm=0;mm<4;++mm)
-            {
-                histdebugvec[ii*4+mm+16]->SetStats(0);
-                histdebugvec[ii*4+mm+16]->SetLineColor(ColorArray[mm+3]);
-
-                if(mm==0)
-                    histdebugvec[ii*4+mm+16]->DrawCopy();
-                else
-                    histdebugvec[ii*4+mm+16]->DrawCopy("SAME");
-            }
-            gPad->BuildLegend();
-        }
-
+        auto mycDebug = new TCanvas("mycDebug","mycDebug",800,600);
+        mycDebug->SetGrid();
+        auto histdebug = myConverter->GetDebugHist();
+        histdebug->SetStats(0);
+        histdebug->DrawCopy();
+        PixTPCLog(PIXtpcDebug,Form("UnderFlow = %f , OverFlow = %f",histdebug->GetBinContent(0),histdebug->GetBinContent(histdebug->GetNbinsX()+1)),false);
     }
 
     delete myConverter;

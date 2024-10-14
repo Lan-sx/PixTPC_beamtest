@@ -11,6 +11,8 @@
 //std 
 #include <fstream>
 #include <string>
+#include <vector>
+#include <algorithm>
 
 //nlohmann json
 #include <nlohmann/json.hpp>
@@ -70,6 +72,7 @@ protected:
     void StartGenMCdata();
     // Reco PixTPC hits, CEPCPixtpcTaskType: TPChitReco, 2 in json 
     void StartRecoPixTPCEvts();
+
 
 private:
     std::string fTaskjsonfile;

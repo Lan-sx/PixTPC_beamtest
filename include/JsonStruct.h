@@ -8,6 +8,7 @@
  * ******************************************************************/
 #ifndef __JsonStruct_H__
 #define __JsonStruct_H__ 1
+#include <string>
 
 //nlohmann json
 #include <nlohmann/json.hpp>
@@ -15,6 +16,24 @@
 //define namespace for json parser
 namespace TaskConfigStruct
 {
+//structure for ChipChn Map, version 1
+struct ChipChnMaps_V1
+{
+    bool isActived;          //
+    int globalIdx;           // from 0-2999
+    int globalrowcolIdx[2];  // 0-9,0-299
+    int localIdx;            // from 1 to 125
+    int chipchnIdx[2];       // 0-23, 0-127
+    double pixelNoise;       // 
+    std::string chipName;    // A1-D1,A3-D3,A5-D5
+                             // D2-A2,D4-A4,D6-A6
+    std::string IOidxArr[2]; //IO0-IO127 : [A,T] x [1,12]
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(ChipChnMaps_V1,isActived,globalIdx,globalrowcolIdx,
+                                   localIdx,chipchnIdx,pixelNoise,chipName,IOidxArr)
+};
+
+
 //structure for Generate simulation data
 struct GenSimDataParsList
 {
@@ -56,6 +75,7 @@ struct HistConfigList
     double HistXYend[2]; 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(HistConfigList,NumberOfHist,Dim,Histbins,HistXYstart,HistXYend)
 };
+
 
 }
 
