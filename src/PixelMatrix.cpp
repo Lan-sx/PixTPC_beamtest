@@ -32,8 +32,12 @@ PixelMatrix& PixelMatrix::PixelTPCdata2PixelMatrix(PixelTPCdata* pixeltpcdata,ch
             if((*pixeltpcdata)(chipsid,chnid).size()>0)
             {
                 auto rowcolpair = BeamUnities::ChipChn2RowCol(chipsid,chnid,GlobalMaps);
-                (*this)(rowcolpair.first,rowcolpair.second) = (qt=='Q') ? (*pixeltpcdata)(chipsid,chnid).at(0).second : 
-                                                                          (*pixeltpcdata)(chipsid,chnid).at(0).first;
+                //add row col check
+                if(rowcolpair.first >=0 && rowcolpair.second >=0)
+                {
+                    (*this)(rowcolpair.first,rowcolpair.second) = (qt=='Q') ? (*pixeltpcdata)(chipsid,chnid).at(0).second : 
+                        (*pixeltpcdata)(chipsid,chnid).at(0).first;
+                }
             }
         }
     }
