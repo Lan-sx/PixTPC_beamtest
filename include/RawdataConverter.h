@@ -65,6 +65,14 @@ protected:
     vector<long long> find_header(ifstream* fin,unsigned char *tar,int lengthtar);
     
     //----------------------------------------
+    //@brief fill fPixtpcdata table (3-D data table) from one data package. 
+    //       There will be 24 data packages in a beam trigger event
+    //@param vector<unsigned char> vbuffer: a data package buffer
+    //@param int chipnumber: chip number of this data package, from 0-23
+    //----------------------------------------
+    void FillPixelTPCdataTable(const vector<unsigned char> vbuffer,int chipnumber);
+
+    //----------------------------------------
     //@brief some debug print functions
     //----------------------------------------
     inline void printHeaderTail(const vector<unsigned char> vecbuffer);
@@ -79,7 +87,7 @@ private:
     PixelTPCdata* fPixtpcdata;
     
     //histogram config, used in debug
-    TaskConfigStruct::HistConfigList fHistconfig;
+    //TaskConfigStruct::HistConfigList fHistconfig;
     //histogram for debug
     std::shared_ptr<TH1D> fHistdebug;
 };
