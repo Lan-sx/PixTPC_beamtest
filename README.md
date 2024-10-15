@@ -1,8 +1,9 @@
-# PixTPC_beamtest Raw2ROOT_br
+# PixTPC_beamtest 
 Offline process program to analysis PixelTPC beam test data
 
 ---
-#### Temp branch for Raw data to ROOT
+Expbr
+
 
 ## How to install ?
 Make sure you have installed:
@@ -20,9 +21,12 @@ Then,
     cd ..
     source ./setup.sh
     ```
+if there is only `.so` files in `./install/lib` dir after installation, you can modify `CMakeLists.txt` file (just add a new line, then cancel modification), and rebuild.
+The `.rootmap` and `.pcm` files will be installed in `./install/lib` dir.
+
 ## How to Run?
 
-    ```shell
+    ```
     cepcPixTPC task.json
     ```
 PS: this program is under developing...
