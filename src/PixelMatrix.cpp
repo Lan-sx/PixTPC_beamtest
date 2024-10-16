@@ -9,10 +9,15 @@
 #include "PixelMatrix.h"
 
 PixelMatrix::PixelMatrix() : TMatrixDSparse(__ROW__,__COL__) , fPixelTPCdata(nullptr),
-                             fHistreadout(nullptr)
+                             fNumberChipsUsed(24),fHistreadout(nullptr)
 {
 }
 
+
+PixelMatrix::PixelMatrix(int numberofChips) : TMatrixDSparse(__ROW__,__COL__) , fPixelTPCdata(nullptr),
+                             fNumberChipsUsed(numberofChips),fHistreadout(nullptr)
+{
+}
 //PixelMatrix::PixelMatrix(PixelTPCdata* pixeltpcdata) : TMatrixDSparse(__ROW__,__COL__),
 //                                                        fPixelTPCdata(nullptr), fHistreadout(nullptr)
 //{
@@ -25,7 +30,7 @@ PixelMatrix::~PixelMatrix()
 
 PixelMatrix& PixelMatrix::PixelTPCdata2PixelMatrix(PixelTPCdata* pixeltpcdata,char qt)
 {
-    for(int chipsid=0; chipsid<__NumChip__; ++chipsid)
+    for(int chipsid=0; chipsid<fNumberChipsUsed; ++chipsid)
     {
         for(int chnid=0; chnid<__NumChn__; ++chnid)             
         {

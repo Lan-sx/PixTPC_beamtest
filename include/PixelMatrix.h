@@ -29,6 +29,7 @@ class PixelMatrix : public TMatrixDSparse
 public:
     //Ctors
     PixelMatrix();
+    PixelMatrix(int numberofChips);
     //PixelMatrix(PixelTPCdata* pixeltpcdata);
     //Dtor
     ~PixelMatrix();
@@ -50,6 +51,7 @@ protected:
     void CreateReadoutPixelArray();
 
 private:
+    int fNumberChipsUsed;
     PixelTPCdata *fPixelTPCdata;
     TH2Poly* fHistreadout;
 };
