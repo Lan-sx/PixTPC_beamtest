@@ -77,6 +77,18 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
             std::printf("### %zu packages Done!\n",ii);
 
         auto bufferlength = vheaderPos.at(ii)-vheaderPos.at(ii-1);
+        
+        vBuffer.resize(bufferlength);
+        f_file->read(reinterpret_cast<char*>(vBuffer.data()),bufferlength);
+
+        if(fIsdebug && ii<4)
+        {
+            printHeaderTail(vBuffer);    
+            printChipNumber(vBuffer);
+            //printTimeStamp(vBuffer);
+            //printTriggerNum(vBuffer);
+        }
+
         if(bufferlength!=1858)
         {
             //if(fIsdebug)
@@ -84,17 +96,6 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
             ChippackageLengthWarning = true;
             continue;
         }
-        vBuffer.resize(bufferlength);
-        f_file->read(reinterpret_cast<char*>(vBuffer.data()),bufferlength);
-
-        if(fIsdebug && ii<2)
-        {
-            printHeaderTail(vBuffer);    
-            printChipNumber(vBuffer);
-            printTimeStamp(vBuffer);
-            printTriggerNum(vBuffer);
-        }
-
         int chipNumber = static_cast<int>(vBuffer.at(3));
         //init post timestamp 
         std::memcpy(&posTimestamp,&vBuffer.at(4),8);
