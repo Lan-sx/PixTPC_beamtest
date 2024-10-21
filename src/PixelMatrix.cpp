@@ -9,13 +9,13 @@
 #include "PixelMatrix.h"
 
 PixelMatrix::PixelMatrix() : TMatrixDSparse(__ROW__,__COL__) , fPixelTPCdata(nullptr),
-                             fNumberChipsUsed(24),fHistreadout(nullptr)
+                             fOverTh_ID(0),fNumberChipsUsed(24),fHistreadout(nullptr)
 {
 }
 
 
 PixelMatrix::PixelMatrix(int numberofChips) : TMatrixDSparse(__ROW__,__COL__) , fPixelTPCdata(nullptr),
-                             fNumberChipsUsed(numberofChips),fHistreadout(nullptr)
+                             fOverTh_ID(0),fNumberChipsUsed(numberofChips),fHistreadout(nullptr)
 {
 }
 //PixelMatrix::PixelMatrix(PixelTPCdata* pixeltpcdata) : TMatrixDSparse(__ROW__,__COL__),
@@ -40,8 +40,8 @@ PixelMatrix& PixelMatrix::PixelTPCdata2PixelMatrix(PixelTPCdata* pixeltpcdata,ch
                 //add row col check
                 if(rowcolpair.first >=0 && rowcolpair.second >=0)
                 {
-                    (*this)(rowcolpair.first,rowcolpair.second) = (qt=='Q') ? (*pixeltpcdata)(chipsid,chnid).at(0).second : 
-                        (*pixeltpcdata)(chipsid,chnid).at(0).first;
+                    (*this)(rowcolpair.first,rowcolpair.second) = (qt=='Q') ? (*pixeltpcdata)(chipsid,chnid).at(fOverTh_ID).second : 
+                        (*pixeltpcdata)(chipsid,chnid).at(fOverTh_ID).first;
                 }
             }
         }
