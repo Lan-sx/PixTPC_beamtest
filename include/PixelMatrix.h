@@ -29,6 +29,7 @@ class PixelMatrix : public TMatrixDSparse
 public:
     //Ctors
     PixelMatrix();
+    PixelMatrix(int numberofChips);
     //PixelMatrix(PixelTPCdata* pixeltpcdata);
     //Dtor
     ~PixelMatrix();
@@ -36,6 +37,8 @@ public:
     //public Methods
     //TODO : need to fixed
     PixelMatrix& PixelTPCdata2PixelMatrix(PixelTPCdata* pixeltpcdata, char qt='Q' );
+
+    void SetOverTh_ID(int id) { fOverTh_ID = (id>=0&&id<4) ? id : 0; }
 
     //PixelMatrix -> PixelResponse at readout plane
     TH2Poly* Matrix2HistReadout();
@@ -50,6 +53,10 @@ protected:
     void CreateReadoutPixelArray();
 
 private:
+    //ID over threshold, 0,1,2,3
+    int fOverTh_ID;
+    //Number of Chips used
+    int fNumberChipsUsed;
     PixelTPCdata *fPixelTPCdata;
     TH2Poly* fHistreadout;
 };
