@@ -70,10 +70,12 @@ struct HistConfigList
 {
     int NumberOfHist;
     int Dim;       
+    std::string Histname;
+    std::string Histtitle;
     int Histbins[2];
     double HistXYstart[2];
     double HistXYend[2]; 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(HistConfigList,NumberOfHist,Dim,Histbins,HistXYstart,HistXYend)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(HistConfigList,NumberOfHist,Dim,Histname,Histtitle,Histbins,HistXYstart,HistXYend)
 };
 
 
