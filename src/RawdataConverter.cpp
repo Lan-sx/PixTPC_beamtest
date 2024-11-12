@@ -11,6 +11,10 @@
 RawdataConverter::RawdataConverter(std::string& rawdatafilename,std::string& rawrootfilename) : 
     fIsdebug(false),fRootName(rawrootfilename),fPixtpcdata(nullptr)
 {
+    fAmpOrTime = true;
+    fChipdebug = 0;
+    fOverThdebug = 0;
+
     f_file = new ifstream;
     f_file->open(rawdatafilename,ios::in | ios::binary);
     if(!f_file->is_open())
@@ -19,6 +23,10 @@ RawdataConverter::RawdataConverter(std::string& rawdatafilename,std::string& raw
 
 RawdataConverter::RawdataConverter(const char* rawdatafilename) : fIsdebug(false),fPixtpcdata(nullptr)
 {
+    fAmpOrTime = true;
+    fChipdebug = 0;
+    fOverThdebug = 0;
+
     f_file = new ifstream;
     f_file->open(rawdatafilename,ios::in | ios::binary);
     if(!f_file->is_open())
@@ -43,13 +51,16 @@ void  RawdataConverter::ConfigDebugHist(TaskConfigStruct::HistConfigList inputhi
         PixTPCLog(PIXtpcWARNING,"Only used in debug mode",false);
         return;
     }
-    fHistdebug = std::make_shared<TH1D>("hChips",";Amp. [LSB];Cnts",inputhistconfig.Histbins[0],
-                                                                    inputhistconfig.HistXYstart[0],
-                                                                    inputhistconfig.HistXYend[0]);
-    PixTPCLog(PIXtpcDebug,"RawdataConverter debug hist created! fill Q from 0-th chip",false);
+    
+    auto hist_name = inputhistconfig.Histname.data();
+    auto hist_title = inputhistconfig.Histtitle.data();
+    fHistdebug = std::make_shared<TH1D>(hist_name,hist_title,inputhistconfig.Histbins[0],
+                                                             inputhistconfig.HistXYstart[0],
+                                                             inputhistconfig.HistXYend[0]);
+    PixTPCLog(PIXtpcDebug,"RawdataConverter debug hist created! fill Q/T from i-th chip",false);
 }
 
-bool RawdataConverter::DoUnpackageRawdata2ROOT()
+bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
 {
     // header, ref Jianmeng Dong and Canwen Liu 
     unsigned char header_r[] = {0x55,0xaa};
@@ -58,12 +69,14 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
     //buffer vector
     vector<unsigned char> vBuffer;
 
+#if 1
     //Create TFile/TTree 
     auto outfile = std::make_unique<TFile>(fRootName.c_str(),"RECREATE");
     outfile->cd();
     auto tr_out = new TTree("PixTPCdata","raw tpc channel data");
-    fPixtpcdata = new PixelTPCdata(4);// 4 TEPIX chips test ret
+    fPixtpcdata = new PixelTPCdata(numofChipUsed);//  TEPIX chips test ret
     tr_out->Branch("pixelTPCdata",&fPixtpcdata);
+#endif
 
     long long preTimestamp=0;
     long long posTimestamp=0;
@@ -81,14 +94,15 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
         vBuffer.resize(bufferlength);
         f_file->read(reinterpret_cast<char*>(vBuffer.data()),bufferlength);
 
-        if(fIsdebug && ii<4)
+        if(fIsdebug && ii<10)
         {
             printHeaderTail(vBuffer);    
             printChipNumber(vBuffer);
             //printTimeStamp(vBuffer);
             //printTriggerNum(vBuffer);
         }
-
+        
+#if 1
         if(bufferlength!=1858)
         {
             //if(fIsdebug)
@@ -96,7 +110,8 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
             ChippackageLengthWarning = true;
             continue;
         }
-        int chipNumber = static_cast<int>(vBuffer.at(3));
+        int chipNumber = static_cast<int>(vBuffer.at(2))*4+static_cast<int>(vBuffer.at(3));
+
         //init post timestamp 
         std::memcpy(&posTimestamp,&vBuffer.at(4),8);
         if(ii==1)
@@ -118,24 +133,26 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT()
             tr_out->Fill();
             globaltriggleId++;
             //resize fPixtpcdata
-            fPixtpcdata->ClearPixelTPCdata(4);
+            fPixtpcdata->ClearPixelTPCdata(numofChipUsed);
             
             //fill this step data
             this->FillPixelTPCdataTable(vBuffer,chipNumber);
             //update pre time stamp
             preTimestamp = posTimestamp;
         }
-
+#endif
     }//end of data
 
     f_file->close();
 
     if(ChippackageLengthWarning)
         PixTPCLog(PIXtpcWARNING,"Chips data length error !!!",false);
-    
+#if 1
     tr_out->Write();
     delete tr_out;
     outfile->Close();
+#endif
+
     PixTPCLog(PIXtpcINFO,Form("Raw binary data convert to ROOT data done!"),false);
 
     return true;
@@ -389,15 +406,19 @@ void RawdataConverter::FillPixelTPCdataTable(const vector<unsigned char> vbuffer
                     ampBits[ll] = (ll==13) ? ampBits[ll] : (ampBits[ll+1] ^ ampBits[ll]); 
                 }
 
-                if(fIsdebug && i_evt==0 && chipnumber==0)
+                if(fIsdebug && i_evt==fOverThdebug && chipnumber==fChipdebug)
                 {
-                    fHistdebug->Fill(double(ampBits.to_ulong()));
+                    if(fAmpOrTime)
+                        fHistdebug->Fill(double(ampBits.to_ulong()));
+                    else
+                        fHistdebug->Fill(double(timeBits.to_ulong()));
                     //std::cout<<std::dec<<"## "<<"chip "<<chipnumber<<" chn "<<chn_id<<","
                     //         <<ampBits.to_ulong()<<","<<timeBits.to_ulong()<<std::endl;
                 }
                 //TODO, need update to 24
                 //4 for testing
-                if(chipnumber<4)
+                //20241111: Ref Jianmeng Dong, Max. chip is 8 for each readout board  
+                if(chipnumber<8)
                 {
                     (*fPixtpcdata)(chipnumber,chn_id).push_back(std::make_pair(timeBits.to_ulong(),
                                                                                ampBits.to_ulong()));
