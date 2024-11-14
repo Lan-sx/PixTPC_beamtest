@@ -78,6 +78,20 @@ struct HistConfigList
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(HistConfigList,NumberOfHist,Dim,Histname,Histtitle,Histbins,HistXYstart,HistXYend)
 };
 
+//structure for PrintProcessor input
+struct PrintProcessorParsList
+{
+    bool Isdebug;
+    int Processorid;
+    int PrintType;
+    int NumberOfChips; 
+    std::string Inputfile;
+    std::string Inputbranch;
+    HistConfigList HistPars;
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(PrintProcessorParsList,Isdebug,Processorid,PrintType,NumberOfChips,
+                                   Inputfile,Inputbranch,HistPars)
+};
+
 
 }
 
