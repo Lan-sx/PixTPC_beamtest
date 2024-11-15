@@ -85,10 +85,24 @@ struct PrintProcessorParsList
     int Processorid;
     int PrintType;
     int NumberOfChips; 
+    int PlotPattern[5]; // [0] -> entry_id
+                        //        -1, read all entries
+                        //        [0,Entries], read one entry, for 2D hist
+                        // [1] -> chip_id
+                        //        -1, read all chips data
+                        //        [0,NumberOfChips-1], read i-th chip data
+                        // [2] -> channel_id
+                        //        -1, read all channels data
+                        //        [0,127], read j-th channel data
+                        // [3] -> overthreshold_id
+                        //        -1, read 4 over threshold QT
+                        //        [0,3], read k-th over threshold QT
+                        // [4] -> Q/T flags
     std::string Inputfile;
     std::string Inputbranch;
     HistConfigList HistPars;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(PrintProcessorParsList,Isdebug,Processorid,PrintType,NumberOfChips,
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(PrintProcessorParsList,Isdebug,Processorid,
+                                   PrintType,NumberOfChips,PlotPattern,
                                    Inputfile,Inputbranch,HistPars)
 };
 
