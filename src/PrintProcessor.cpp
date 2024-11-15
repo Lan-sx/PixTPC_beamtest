@@ -28,6 +28,23 @@ PrintProcessor::PrintProcessor(TFile *filein, TTree *treein) :
     f_histQ = new TH1D("hQ",";Q [LSB];Cnts",2000,3000,5000);
     f_histT = new TH1D("hT",";Q [LSB];Cnts",500,2000,3000);
 }
+
+PrintProcessor::PrintProcessor(TaskConfigStruct::PrintProcessorParsList inputPars) :
+                Processor("PrintProcessor",inputPars.Processorid), f_PixTPCdata(nullptr),
+                f_histQ(nullptr),f_histT(nullptr)
+
+{
+    f_InputPars = inputPars;
+    fIsdebug = f_InputPars.Isdebug;
+    f_file = TFile::Open(f_InputPars.Inputfile.data());
+    if(!f_file)
+        throw std::runtime_error("INPUT FILE ERROR");
+
+    f_tree = dynamic_cast<TTree*>(f_file->Get("PixTPCdata"));
+    //f_InputPars.NumberOfChips = inputPars.NumberOfChips; 
+    //f_InputPars.HistPars = inputPars.HistPars;
+}
+
 PrintProcessor::~PrintProcessor()
 {
     delete f_PixTPCdata;
@@ -39,12 +56,33 @@ PrintProcessor::~PrintProcessor()
 void PrintProcessor::InitAction()
 {
     f_file->cd();
-    f_PixTPCdata = new PixelTPCdata(1);
-    f_tree->SetBranchAddress("pixelTPCdata",&f_PixTPCdata);
+    f_PixTPCdata = new PixelTPCdata(f_InputPars.NumberOfChips);
+    if(!f_tree->GetBranch(f_InputPars.Inputbranch.c_str()) || f_tree->GetEntries()<=0)
+        throw  std::runtime_error("ERROR INPUT Branch NAME Or 0 entry");
+    else
+        f_tree->SetBranchAddress("pixelTPCdata",&f_PixTPCdata);
+
+    PixTPCLog(PIXtpcINFO,Form("%s InitAction Done!",this->GetProcessorName().c_str()),false);
+    
 }
 
 void PrintProcessor::ProcessEventAction()
 {
+    auto print_type = f_InputPars.PrintType;
+    
+    switch(print_type)
+    {
+        case Print1DHistQT:
+            this->Plot1DHistQT();
+            break;
+        case Print2DHistQT_Pos:
+            this->Plot2DHistQT_Pos();
+            break;
+        default:
+            break;
+    }
+
+#if 0
     f_tree->GetEntry(0);
     auto vecOverThresholdEvts = f_PixTPCdata->Getdata_IJ(0,0);
     if(vecOverThresholdEvts.size()>0)
@@ -90,12 +128,13 @@ void PrintProcessor::ProcessEventAction()
     }
 
     fgrQ = new TGraphErrors(vMeanQ.size(),vChn.data(),vMeanQ.data(),nullptr,vSigmaQ.data());
-
+#endif
 }
 
 void PrintProcessor::EndAction()
 {
-    this->DebugPrint();
+    if(fIsdebug) 
+        this->DebugPrint();
 }
     
 
@@ -106,3 +145,122 @@ void PrintProcessor::DebugPrint()
     //std::cout<<"\t"<<vmaps.at(2000).ChipIdx<<"\t"<<vmaps.at(2000).ChnIdx<<std::endl;
     std::printf("=======================> This is end of %s !!!\n",this->GetProcessorName().c_str()); 
 }
+
+
+TCanvas* PrintProcessor::Plot2DHistQT_Pos()
+{
+    int plot2d_entry_id = f_InputPars.PlotPattern[0];
+    if(plot2d_entry_id > f_tree->GetEntries() || plot2d_entry_id < 0)
+    {
+        plot2d_entry_id = 0;
+        PixTPCLog(PIXtpcWARNING,"Input EntryID (PlotPattern[0]) out of range, plot 0-th entry",false);
+    }
+
+    int plot2d_overthreshold_id = f_InputPars.PlotPattern[3];
+    if(plot2d_overthreshold_id >= 4 || plot2d_overthreshold_id < 0)
+    {
+        plot2d_overthreshold_id = 0;
+        PixTPCLog(PIXtpcWARNING,"Input OverThresholdID (PlotPattern[3]) out of range, plot 0-th over threshold evt",false);
+    }
+    
+    char QT_flags = 'Q';
+    QT_flags = f_InputPars.PlotPattern[4]>=0 ? 'Q' : 'T';
+
+    f_tree->GetEntry(plot2d_entry_id);
+
+    auto mat10x300_exp = new PixelMatrix(f_InputPars.NumberOfChips);
+    mat10x300_exp->SetOverTh_ID(plot2d_overthreshold_id);
+    mat10x300_exp->PixelTPCdata2PixelMatrix(f_PixTPCdata,QT_flags);
+    auto histxy = mat10x300_exp->Matrix2HistReadout();
+    //TODO, plot histxy name
+
+    std::string Cname = "CQvsPos"+std::to_string(fProcessorId);
+    auto myc = new TCanvas(Cname.c_str(),Cname.c_str(),300,600);
+    //myc->SetRightMargin(0.12);
+    myc->SetGrid();
+    histxy->DrawCopy("COL");
+    delete mat10x300_exp;
+    return myc;
+}
+
+TCanvas* PrintProcessor::Plot1DHistQT()
+{
+    int plot1d_entry_id = f_InputPars.PlotPattern[0];
+    if(plot1d_entry_id > f_tree->GetEntries())
+    {
+        plot1d_entry_id = 0;
+        PixTPCLog(PIXtpcWARNING,"Input EntryID (PlotPattern[0]) out of range, plot 0-th entry",false);
+    }
+    int entryid_start = plot1d_entry_id < 0 ? 0 : plot1d_entry_id;
+    int entryid_end   = plot1d_entry_id < 0 ? f_tree->GetEntries() : plot1d_entry_id+1;
+
+    int plot1d_chip_id = f_InputPars.PlotPattern[1];
+    if(plot1d_chip_id >= f_InputPars.NumberOfChips)
+    {
+        plot1d_chip_id = 0;
+        PixTPCLog(PIXtpcWARNING,"Input ChipID (PlotPattern[1]) out of range, plot 0-th chip data",false);
+    }
+    int chipid_start = plot1d_chip_id < 0 ? 0 : plot1d_chip_id;
+    int chipid_end   = plot1d_chip_id < 0 ? f_InputPars.NumberOfChips : plot1d_chip_id + 1;
+
+    int plot1d_chn_id = f_InputPars.PlotPattern[2];
+    if(plot1d_chn_id >= __NumChn__)
+    {
+        plot1d_chn_id = 0;
+        PixTPCLog(PIXtpcWARNING,"Input ChnID (PlotPattern[2]) out of range, plot 0-th channel data",false);
+    }
+    int chnid_start = plot1d_chn_id < 0 ? 0 : plot1d_chn_id;
+    int chnid_end   = plot1d_chn_id < 0 ? __NumChn__ : plot1d_chn_id + 1;
+
+    int plot1d_overtheshold_id = f_InputPars.PlotPattern[3];
+    if(plot1d_overtheshold_id >= 4)
+    {
+        plot1d_chn_id = 0;
+        PixTPCLog(PIXtpcWARNING,"Input OverThresholdID (PlotPattern[3]) out of range, plot 0-th over threshold data",false);
+    }
+    int overThreshold_start = plot1d_overtheshold_id < 0 ? 0 : plot1d_overtheshold_id;
+    int overThreshold_end   = plot1d_overtheshold_id < 0 ? 4 : plot1d_overtheshold_id + 1;
+
+    char QT_flags = 'Q';
+    QT_flags = f_InputPars.PlotPattern[4]>=0 ? 'Q' : 'T';
+    
+    auto histQT = std::make_unique<TH1D>(f_InputPars.HistPars.Histname.c_str(),
+                                         f_InputPars.HistPars.Histtitle.c_str(),
+                                         f_InputPars.HistPars.Histbins[0],
+                                         f_InputPars.HistPars.HistXYstart[0],
+                                         f_InputPars.HistPars.HistXYend[0]);
+
+    //5-fold cycle
+    for(int ii0 = entryid_start; ii0 < entryid_end; ++ii0)
+    {
+        f_tree->GetEntry(ii0);
+        for(int ii1 = chipid_start; ii1 < chipid_end; ++ii1)     
+        {
+            for(int ii2 = chnid_start; ii2 < chnid_end; ++ii2)
+            {
+                auto tmp_size = (*f_PixTPCdata)(ii1,ii2).size();
+                if(tmp_size>0)
+                {
+                    //only for calibration signal case: 
+                    for(int ii3 = overThreshold_start; ii3 < overThreshold_end; ++ii3)
+                    {
+                         auto histcontent = QT_flags == 'Q' ? (*f_PixTPCdata)(ii1,ii2).at(ii3).second :
+                                                              (*f_PixTPCdata)(ii1,ii2).at(ii3).first;
+
+                         histQT->Fill(histcontent);
+                    }
+                    //FIXME,
+                    //for external trigger case: only plot 0-th over threshold QT
+                }
+            }
+        }
+    }
+
+    std::string Cname = "CQT_hist"+std::to_string(fProcessorId);
+    auto myc = new TCanvas(Cname.c_str(),Cname.c_str(),800,600);
+    myc->SetGrid();
+    histQT->DrawCopy();
+
+    return  myc;
+}
+

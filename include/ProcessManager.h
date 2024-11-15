@@ -28,6 +28,7 @@
 #include "RawdataConverter.h"
 #include "Processor.h"
 #include "PixHitRecoSimpleProcessor.h"
+#include "PrintProcessor.h"
 #include "GenSimData.h"
 
 using PixJson = nlohmann::json;

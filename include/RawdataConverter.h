@@ -45,13 +45,20 @@ public:
     // 2024-07-06: convert function, only one TEPIX Chip used, need to update when Det & Ele commissioning
     bool DoUnpackage();
     // 2024-10-08: test ref Jianmeng Dong data
-    bool DoUnpackageRawdata2ROOT();
+    bool DoUnpackageRawdata2ROOT(int numofChipUsed);
+    // TODO, add a function to merge root data. 
+    // There will be 3 CUBES boards with 3 IP addresses and each board will output a data file with 8 TEPIX chips
 
     //Switch debug 
     void EnableUnpackgeDebug() { fIsdebug = true; } 
     void DisableUnpackgeDebug() { fIsdebug = false; }
+    void SetdebugHistIndex(int chips, int evtoverThreshold, bool amp=true) { 
+        fChipdebug= chips < 8 ? chips : 0; 
+        fOverThdebug= evtoverThreshold < 4 ? evtoverThreshold : 0; 
+        fAmpOrTime=amp; 
+    }
     decltype(auto) GetDebugHist() { return fHistdebug; }
-    
+
     //Set/Config Debug histogram bins,start bins, end bins when EnableUnpackgeDebug
     void  ConfigDebugHist(TaskConfigStruct::HistConfigList inputhistconfig);
 
@@ -73,7 +80,8 @@ protected:
     void FillPixelTPCdataTable(const vector<unsigned char> vbuffer,int chipnumber);
 
     //----------------------------------------
-    //@brief some debug print functions
+    //@brief description: 
+    //       some debug print functions
     //----------------------------------------
     inline void printHeaderTail(const vector<unsigned char> vecbuffer);
     inline void printChipNumber(const vector<unsigned char> vecbuffer);
@@ -90,6 +98,10 @@ private:
     //TaskConfigStruct::HistConfigList fHistconfig;
     //histogram for debug
     std::shared_ptr<TH1D> fHistdebug;
+    //vars to control debug histogram 
+    bool fAmpOrTime;
+    int fChipdebug;
+    int fOverThdebug;
 };
 
 
@@ -114,7 +126,8 @@ inline void RawdataConverter::printChipNumber(const vector<unsigned char> vecbuf
     cout<<std::hex<<std::setw(2)<<std::setfill('0')
         <<static_cast<int>(vecbuffer.at(2))
         <<std::hex<<std::setw(2)<<std::setfill('0')
-        <<static_cast<int>(vecbuffer.at(3))<<endl;
+        <<static_cast<int>(vecbuffer.at(3));
+    cout<<" -> "<<std::dec<<static_cast<int>(vecbuffer.at(2))*4+static_cast<int>(vecbuffer.at(3))<<endl;
 }
 
 inline void RawdataConverter::printTimeStamp (const vector<unsigned char> vecbuffer)
