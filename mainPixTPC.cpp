@@ -14,7 +14,6 @@
 #include "TTree.h"
 #include "TLegend.h"
 #include "TPolyMarker.h"
-#include "TPolyLine3D.h"
 #include "TGraph.h"
 #include "TGraph2D.h"
 #include "TApplication.h"
@@ -48,38 +47,7 @@ void FillPixelTPCdata()
 
 void test01()
 {
-    //auto file3 = TFile::Open("/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/task/MCdata_electron_5GeV_X0.21cmZ16cm.root");
-    auto file3 = TFile::Open("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/task/RawExpdata20241021.root");
-    if(!file3) return;
-    auto tr = dynamic_cast<TTree*>(file3->Get("PixTPCdata"));
-    auto pixeltpcdata = new PixelTPCdata(4);
-    tr->SetBranchAddress("pixelTPCdata",&pixeltpcdata);
-    tr->GetEntry(8);
-
-    auto mat10x300_exp = new PixelMatrix(4);
-    mat10x300_exp->SetOverTh_ID(2);
-    mat10x300_exp->PixelTPCdata2PixelMatrix(pixeltpcdata);
-    auto histxy = mat10x300_exp->Matrix2HistReadout();
-
-    auto myc1 =new TCanvas("myc1","myc1",300,600);
-    myc1->SetRightMargin(0.12);
-    myc1->SetGrid();
-    histxy->DrawCopy("COL");
-
-    auto hQuniformity = new TH1D("hQuniformity",";Amp [LSB];NumOfPixel",200,1000,6000);
-    auto cc1 = new TCanvas("cc1","cc1",800,600);
-    cc1->SetGrid();
-    auto pData = mat10x300_exp->GetMatrixArray();
-    auto lengthData = mat10x300_exp->GetNoElements();
-    for(int i=0;i<lengthData;++i)
-    {
-        hQuniformity->Fill(pData[i]);
-    }
-    hQuniformity->Draw();
-    //myc1->DrawFrame(3000,0,5000,800,";Channel;Q mean [LSB]");
-    
-    delete mat10x300_exp;
-
+    printf("==== test01 ====\n");
 #if 0
     auto processor3 = new PixHitRecoSimpleProcessor(file3);
     processor3->EnableProceesorDebug();
@@ -224,6 +192,7 @@ int main(int argc, char** argv)
         auto CEPCPixtpcRunManager = new ProcessManager;
         try {
             CEPCPixtpcRunManager->InitialMapsManually("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/config/ChipChnMapsV1.csv");
+            //CEPCPixtpcRunManager->InitialMapsFromJson()
             //FillPixelTPCdata();
             test01();
             //test02();
