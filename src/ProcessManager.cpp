@@ -257,7 +257,6 @@ void ProcessManager::StartRecoPixTPCEvts()
             for(auto item : printprocessorArray)
             {
                 TaskConfigStruct::PrintProcessorParsList printprocessor_i = item;
-                PixTPCLog(PIXtpcINFO,printprocessor_i.HistPars.Histname.data(),false);
                 auto printprocessor = new PrintProcessor(printprocessor_i);
                 this->AddProcessor(printprocessor);
             }
