@@ -22,6 +22,9 @@
 #include "Processor.h"
 #include "PixelTPCdata.h"
 
+extern std::vector<std::pair<int,int>> GlobalMaps;
+extern std::vector<TaskConfigStruct::ChipChnMaps_V1> GlobalJsonMaps;
+
 class PrintProcessor : public Processor 
 {
 public:
@@ -42,8 +45,8 @@ public:
     //enum types
     enum PrintTypes { 
         Print1DHistQT=0,
+        Print1DHistQT_IO,
         Print2DHistQT_Pos,
-        Print2DHistQT_IO
     };
     //public methods
     //Legacy code
@@ -54,6 +57,7 @@ public:
 protected:
     TCanvas* Plot1DHistQT();
     TCanvas* Plot2DHistQT_Pos();
+    TCanvas* Plot1DHistQT_IO();
 
 private:
     TFile* f_file;

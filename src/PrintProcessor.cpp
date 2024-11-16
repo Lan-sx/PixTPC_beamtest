@@ -75,6 +75,9 @@ void PrintProcessor::ProcessEventAction()
         case Print1DHistQT:
             this->Plot1DHistQT();
             break;
+        case Print1DHistQT_IO:
+            this->Plot1DHistQT_IO();
+            break;
         case Print2DHistQT_Pos:
             this->Plot2DHistQT_Pos();
             break;
@@ -183,6 +186,68 @@ TCanvas* PrintProcessor::Plot2DHistQT_Pos()
     return myc;
 }
 
+TCanvas* PrintProcessor::Plot1DHistQT_IO()
+{
+    int plot2d_entry_id = f_InputPars.PlotPattern[0];
+    if(plot2d_entry_id > f_tree->GetEntries() || plot2d_entry_id < 0)
+    {
+        plot2d_entry_id = 0;
+        PixTPCLog(PIXtpcWARNING,"Input EntryID (PlotPattern[0]) out of range, plot 0-th entry",false);
+    }
+
+    int plot1d_chip_id = f_InputPars.PlotPattern[1];
+    if(plot1d_chip_id >= f_InputPars.NumberOfChips || plot1d_chip_id<0)
+    {
+        plot1d_chip_id = 0;
+        PixTPCLog(PIXtpcWARNING,"Input ChipID (PlotPattern[1]) out of range, plot 0-th chip data",false);
+    }
+
+    int plot2d_overthreshold_id = f_InputPars.PlotPattern[3];
+    if(plot2d_overthreshold_id >= 4 || plot2d_overthreshold_id < 0)
+    {
+        plot2d_overthreshold_id = 0;
+        PixTPCLog(PIXtpcWARNING,"Input OverThresholdID (PlotPattern[3]) out of range, plot 0-th over threshold evt",false);
+    }
+    
+    char QT_flags = 'Q';
+    QT_flags = f_InputPars.PlotPattern[4]>=0 ? 'Q' : 'T';
+
+    f_tree->GetEntry(plot2d_entry_id);
+    
+    auto histQT_chn  = std::make_unique<TH1D>(f_InputPars.HistPars.Histname.c_str(),
+                                              f_InputPars.HistPars.Histtitle.c_str(),128,0,128);
+    histQT_chn->SetTitle(Form("Chip%d,OverTheshold%d",plot1d_chip_id,plot2d_overthreshold_id));
+    for(int chn_i=0; chn_i < __NumChn__; ++chn_i)
+    {
+
+        auto histcontent = QT_flags == 'Q' ? (*f_PixTPCdata)(plot1d_chip_id,chn_i).at(plot2d_overthreshold_id).second :
+                                             (*f_PixTPCdata)(plot1d_chip_id,chn_i).at(plot2d_overthreshold_id).first;
+        histQT_chn->SetBinContent(chn_i+1,histcontent);
+    }
+
+    std::string Cname = "CQT_IO_hist"+std::to_string(fProcessorId);
+    auto myc = new TCanvas(Cname.c_str(),Cname.c_str(),800,600);
+    myc->SetGrid();
+    histQT_chn->SetStats(0);
+    histQT_chn->DrawCopy();
+
+    return  myc;
+
+    //find globalIdx and IOidx
+    //auto Q_pixel = (*f_PixTPCdata)(plot1d_chip_id,0).at(plot2d_overthreshold_id).second;
+    //auto maping_i = std::find_if(GlobalJsonMaps.begin(),GlobalJsonMaps.end(),
+    //                             [=](TaskConfigStruct::ChipChnMaps_V1 mapitem){ 
+    //                                if(mapitem.chipchnIdx[0] == plot1d_chip_id && mapitem.chipchnIdx[1] == 0)  
+    //                                    return true;
+    //                                else 
+    //                                    return false;
+    //                             });
+    //if(maping_i != GlobalJsonMaps.end())
+    //    std::printf("IO idx of (chip%d,chn%d)=%s,and Q/T=%.2f\n",plot1d_chip_id,0,(*maping_i).IOidxArr[0].c_str(),Q_pixel);
+    //else
+    //    PixTPCLog(PIXtpcERROR,"Chip Chn NOT FOUND",false);
+}
+
 TCanvas* PrintProcessor::Plot1DHistQT()
 {
     int plot1d_entry_id = f_InputPars.PlotPattern[0];
@@ -263,4 +328,5 @@ TCanvas* PrintProcessor::Plot1DHistQT()
 
     return  myc;
 }
+
 
