@@ -30,6 +30,7 @@
 #include "MCTrackdata.h"
 
 std::vector<std::pair<int,int>> GlobalMaps;
+std::vector<TaskConfigStruct::ChipChnMaps_V1> GlobalJsonMaps;
 
 using namespace std;
 
