@@ -88,6 +88,8 @@ void ProcessManager::InitialMapsFromJson()
         {
             auto chipchnmapsJsonObj = PixJson::parse(line);
             TaskConfigStruct::ChipChnMaps_V1 pixelIdx = chipchnmapsJsonObj.get<TaskConfigStruct::ChipChnMaps_V1>();
+            //initial GlobalJsonMaps
+            GlobalJsonMaps.push_back(pixelIdx);
             if(pixelIdx.isActived)
             {
                 vMaps.at(pixelIdx.globalIdx)= std::make_pair(pixelIdx.chipchnIdx[0],

@@ -33,8 +33,11 @@
 
 using PixJson = nlohmann::json;
 
+//Legacy map
 //extern global chip chn mapping, .csv file must be provided in task.json file
 extern std::vector<std::pair<int,int>> GlobalMaps;
+//extern global json mapping, .json file muse be provided in task.json file
+extern std::vector<TaskConfigStruct::ChipChnMaps_V1> GlobalJsonMaps;
 
 class ProcessManager : public TObjArray
 {
