@@ -202,35 +202,88 @@ TCanvas* PrintProcessor::Plot1DHistQT_IO()
         PixTPCLog(PIXtpcWARNING,"Input ChipID (PlotPattern[1]) out of range, plot 0-th chip data",false);
     }
 
-    int plot2d_overthreshold_id = f_InputPars.PlotPattern[3];
-    if(plot2d_overthreshold_id >= 4 || plot2d_overthreshold_id < 0)
-    {
-        plot2d_overthreshold_id = 0;
-        PixTPCLog(PIXtpcWARNING,"Input OverThresholdID (PlotPattern[3]) out of range, plot 0-th over threshold evt",false);
-    }
+    //int plot2d_overthreshold_id = f_InputPars.PlotPattern[3];
+    //if(plot2d_overthreshold_id >= 4 || plot2d_overthreshold_id < 0)
+    //{
+    //    plot2d_overthreshold_id = 0;
+    //    PixTPCLog(PIXtpcWARNING,"Input OverThresholdID (PlotPattern[3]) out of range, plot 0-th over threshold evt",false);
+    //}
     
     char QT_flags = 'Q';
     QT_flags = f_InputPars.PlotPattern[4]>=0 ? 'Q' : 'T';
 
     f_tree->GetEntry(plot2d_entry_id);
     
-    auto histQT_chn  = std::make_unique<TH1D>(f_InputPars.HistPars.Histname.c_str(),
+    auto suffix_histname = f_InputPars.HistPars.Histname;
+    std::string histnameArray[4] = {suffix_histname + "0",
+                                    suffix_histname + "1",
+                                    suffix_histname + "2",
+                                    suffix_histname + "3"
+                                    };
+
+    auto histQT_chn0  = new TH1D(histnameArray[0].c_str(),
                                               f_InputPars.HistPars.Histtitle.c_str(),128,0,128);
-    histQT_chn->SetTitle(Form("Chip%d,OverTheshold%d",plot1d_chip_id,plot2d_overthreshold_id));
+
+    auto histQT_chn1  = new TH1D(histnameArray[1].c_str(),
+                                              f_InputPars.HistPars.Histtitle.c_str(),128,0,128);
+
+    auto histQT_chn2  = new TH1D(histnameArray[2].c_str(),
+                                              f_InputPars.HistPars.Histtitle.c_str(),128,0,128);
+
+    auto histQT_chn3  = new TH1D(histnameArray[3].c_str(),
+                                              f_InputPars.HistPars.Histtitle.c_str(),128,0,128);
+    
+    histQT_chn0->SetLineColor(ColorArray[2]);
+    histQT_chn1->SetLineColor(ColorArray[3]);
+    histQT_chn2->SetLineColor(ColorArray[4]);
+    histQT_chn3->SetLineColor(ColorArray[5]);
+
     for(int chn_i=0; chn_i < __NumChn__; ++chn_i)
     {
+        if((*f_PixTPCdata)(plot1d_chip_id,chn_i).size()==4)
+        {
+            auto histcontent0 = QT_flags == 'Q' ? (*f_PixTPCdata)(plot1d_chip_id,chn_i).at(0).second :
+                (*f_PixTPCdata)(plot1d_chip_id,chn_i).at(0).first;
 
-        auto histcontent = QT_flags == 'Q' ? (*f_PixTPCdata)(plot1d_chip_id,chn_i).at(plot2d_overthreshold_id).second :
-                                             (*f_PixTPCdata)(plot1d_chip_id,chn_i).at(plot2d_overthreshold_id).first;
-        histQT_chn->SetBinContent(chn_i+1,histcontent);
+            auto histcontent1 = QT_flags == 'Q' ? (*f_PixTPCdata)(plot1d_chip_id,chn_i).at(1).second :
+                (*f_PixTPCdata)(plot1d_chip_id,chn_i).at(1).first;
+
+            auto histcontent2 = QT_flags == 'Q' ? (*f_PixTPCdata)(plot1d_chip_id,chn_i).at(2).second :
+                (*f_PixTPCdata)(plot1d_chip_id,chn_i).at(2).first;
+            
+            auto histcontent3 = QT_flags == 'Q' ? (*f_PixTPCdata)(plot1d_chip_id,chn_i).at(3).second :
+                (*f_PixTPCdata)(plot1d_chip_id,chn_i).at(3).first;
+            
+            histQT_chn0->SetBinContent(chn_i+1,histcontent0);
+            histQT_chn1->SetBinContent(chn_i+1,histcontent1);
+            histQT_chn2->SetBinContent(chn_i+1,histcontent2);
+            histQT_chn3->SetBinContent(chn_i+1,histcontent3);
+        }
     }
 
     std::string Cname = "CQT_IO_hist"+std::to_string(fProcessorId);
     auto myc = new TCanvas(Cname.c_str(),Cname.c_str(),800,600);
-    myc->SetGrid();
-    histQT_chn->SetStats(0);
-    histQT_chn->DrawCopy();
+    myc->DrawFrame(f_InputPars.HistPars.HistXYstart[0],
+                   f_InputPars.HistPars.HistXYend[0],
+                   f_InputPars.HistPars.HistXYstart[1],
+                   f_InputPars.HistPars.HistXYend[1],
+                   Form("Entry%d,%d-th Chip",plot2d_entry_id,plot1d_chip_id));
 
+    myc->SetGrid();
+    histQT_chn0->Draw("SAME");
+    histQT_chn1->Draw("SAME");
+    histQT_chn2->Draw("SAME");
+    histQT_chn3->Draw("SAME");
+
+    auto lg = new TLegend(0.65,0.72,0.9,0.92);
+    lg->SetFillStyle(000);
+    lg->AddEntry(histQT_chn0,"Trigger 0","L");
+    lg->AddEntry(histQT_chn1,"Trigger 1","L");
+    lg->AddEntry(histQT_chn2,"Trigger 2","L");
+    lg->AddEntry(histQT_chn3,"Trigger 3","L");
+    lg->Draw();
+
+    myc->Print("./test00001.png");
     return  myc;
 
     //find globalIdx and IOidx

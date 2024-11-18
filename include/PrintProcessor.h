@@ -16,8 +16,10 @@
 #include "TH1D.h"
 #include "TGraphErrors.h"
 #include "TCanvas.h"
+#include "TLegend.h"
 
 //Users
+#include "BeamUnities.h"
 #include "JsonStruct.h"
 #include "Processor.h"
 #include "PixelTPCdata.h"
