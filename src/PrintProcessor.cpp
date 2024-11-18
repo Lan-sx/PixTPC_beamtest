@@ -221,16 +221,16 @@ TCanvas* PrintProcessor::Plot1DHistQT_IO()
                                     suffix_histname + "3"
                                     };
 
-    auto histQT_chn0  = new TH1D(histnameArray[0].c_str(),
+    auto histQT_chn0  = std::make_unique<TH1D>(histnameArray[0].c_str(),
                                               f_InputPars.HistPars.Histtitle.c_str(),128,0,128);
 
-    auto histQT_chn1  = new TH1D(histnameArray[1].c_str(),
+    auto histQT_chn1  = std::make_unique<TH1D>(histnameArray[1].c_str(),
                                               f_InputPars.HistPars.Histtitle.c_str(),128,0,128);
 
-    auto histQT_chn2  = new TH1D(histnameArray[2].c_str(),
+    auto histQT_chn2  = std::make_unique<TH1D>(histnameArray[2].c_str(),
                                               f_InputPars.HistPars.Histtitle.c_str(),128,0,128);
 
-    auto histQT_chn3  = new TH1D(histnameArray[3].c_str(),
+    auto histQT_chn3  = std::make_unique<TH1D>(histnameArray[3].c_str(),
                                               f_InputPars.HistPars.Histtitle.c_str(),128,0,128);
     
     histQT_chn0->SetLineColor(ColorArray[2]);
@@ -270,20 +270,21 @@ TCanvas* PrintProcessor::Plot1DHistQT_IO()
                    Form("Entry%d,%d-th Chip",plot2d_entry_id,plot1d_chip_id));
 
     myc->SetGrid();
-    histQT_chn0->Draw("SAME");
-    histQT_chn1->Draw("SAME");
-    histQT_chn2->Draw("SAME");
-    histQT_chn3->Draw("SAME");
-
-    auto lg = new TLegend(0.65,0.72,0.9,0.92);
+    histQT_chn0->DrawCopy("SAME");
+    histQT_chn1->DrawCopy("SAME");
+    histQT_chn2->DrawCopy("SAME");
+    histQT_chn3->DrawCopy("SAME");
+    
+    auto lg = myc->BuildLegend(0.65,0.72,0.9,0.92,"","L");
     lg->SetFillStyle(000);
-    lg->AddEntry(histQT_chn0,"Trigger 0","L");
-    lg->AddEntry(histQT_chn1,"Trigger 1","L");
-    lg->AddEntry(histQT_chn2,"Trigger 2","L");
-    lg->AddEntry(histQT_chn3,"Trigger 3","L");
-    lg->Draw();
 
-    myc->Print("./test00001.png");
+    //remove "hframe" legend entry
+    auto obj1 = lg->GetListOfPrimitives()->At(0);
+    //std::cout<<"[==========] :"<<lg->GetListOfPrimitives()->GetSize()<<std::endl;
+    auto legEntry = dynamic_cast<TLegendEntry*>(obj1);
+    lg->GetListOfPrimitives()->Remove(legEntry);
+    myc->Update();
+    
     return  myc;
 
     //find globalIdx and IOidx

@@ -17,6 +17,7 @@
 #include "TGraphErrors.h"
 #include "TCanvas.h"
 #include "TLegend.h"
+#include "TLegendEntry.h"
 
 //Users
 #include "BeamUnities.h"
