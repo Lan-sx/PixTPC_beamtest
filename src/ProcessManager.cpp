@@ -124,6 +124,22 @@ void ProcessManager::InitialMapsFromJson()
 void ProcessManager::StartUnpackage()
 {
     PixTPCLog(PIXtpcDebug,"Test print in StartUnpackage()",false);
+    
+    //1/Read RawdataConverter input Pars list from json
+    if(fPixJsonParser.contains("RawdataConvParsList"))
+    {
+        TaskConfigStruct::RawdataConvParsList inputPars = fPixJsonParser.at("RawdataConvParsList");
+        auto multiConverter = new RawdataConverter(inputPars);
+        multiConverter->DoUnpackageRawdata2ROOT_withMultiIP();
+        delete multiConverter;
+    }
+    else
+    {
+        throw std::runtime_error("Error input json file, RawdataConverter need!!!");
+    }
+
+    //legacy code: only for single input file
+#if 0
     std::string inputrawbinfile= fPixJsonParser.at("Inputfile");
     std::string outputrootfile = fPixJsonParser.at("Outputfile");
     bool isdebug = fPixJsonParser.at("Isdebug");
@@ -179,7 +195,8 @@ void ProcessManager::StartUnpackage()
     }
 
     delete myConverter;
-    PixTPCLog(PIXtpcDebug,"End of StartUnpackage()",false);
+#endif 
+    PixTPCLog(PIXtpcINFO,"End of StartUnpackage()",false);
 }
 
 void ProcessManager::StartGenMCdata()
