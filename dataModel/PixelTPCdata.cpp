@@ -21,7 +21,7 @@ PixelTPCdata::PixelTPCdata(int NumofChips)
     }
 }
 
-PixelTPCdata& PixelTPCdata::SetTiggleID(int triggleid)
+PixelTPCdata& PixelTPCdata::SetTiggleID(unsigned long triggleid)
 {
     fTriggleID = triggleid;
     return *this;
