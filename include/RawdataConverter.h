@@ -70,12 +70,18 @@ protected:
     //@param int lengthtar: length of target
     //----------------------------------------
     vector<long long> find_header(ifstream* fin,unsigned char *tar,int lengthtar);
+
+    //----------------------------------------
+    //@brief description: Read Time stamp in big endian
+    //@param vector<unsigned char>: data package buffer
+    //----------------------------------------
+    unsigned long GetTimeStampinBigendian(const vector<unsigned char> vbuffer);
     
     //----------------------------------------
     //@brief fill fPixtpcdata table (3-D data table) from one data package. 
     //       There will be 24 data packages in a beam trigger event
     //@param vector<unsigned char> vbuffer: a data package buffer
-    //@param int chipnumber: chip number of this data package, from 0-23
+    //@param int chipnumber: chip number of this data package, from 0-7 for one board
     //----------------------------------------
     void FillPixelTPCdataTable(const vector<unsigned char> vbuffer,int chipnumber);
 

@@ -78,8 +78,8 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
     tr_out->Branch("pixelTPCdata",&fPixtpcdata);
 #endif
 
-    long long preTimestamp=0;
-    long long posTimestamp=0;
+    unsigned long preTimestamp=0;
+    unsigned long posTimestamp=0;
     int globaltriggleId =0;
     bool ChippackageLengthWarning = false;
 
@@ -113,11 +113,13 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
         int chipNumber = static_cast<int>(vBuffer.at(2))*4+static_cast<int>(vBuffer.at(3));
 
         //init post timestamp 
-        std::memcpy(&posTimestamp,&vBuffer.at(4),8);
+        //std::memcpy(&posTimestamp,&vBuffer.at(4),sizeof(long));// little-endian 
+        posTimestamp = this->GetTimeStampinBigendian(vBuffer);
         if(ii==1)
-            std::memcpy(&preTimestamp,&vBuffer.at(4),8);
+            preTimestamp = posTimestamp;
+            //std::memcpy(&preTimestamp,&vBuffer.at(4),sizeof(long));
 
-        if(fIsdebug && ii<8)
+        if(fIsdebug && ii<10)
             std::cout<<std::hex<<"pre: "<<preTimestamp<<" pos:"<<posTimestamp<<std::endl;
 
         if(preTimestamp == posTimestamp)
@@ -129,7 +131,11 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
         else
         {
             //set globaltriggleId and Fill tree
-            fPixtpcdata->SetTiggleID(globaltriggleId);
+            //fPixtpcdata->SetTiggleID(globaltriggleId);
+            fPixtpcdata->SetTiggleID(preTimestamp);
+            if(fIsdebug && ii<10)
+                std::cout<<std::hex<<":> Trigger ID:"<<fPixtpcdata->GetTriggleID()<<std::endl;
+            
             tr_out->Fill();
             globaltriggleId++;
             //resize fPixtpcdata
@@ -433,3 +439,19 @@ void RawdataConverter::FillPixelTPCdataTable(const vector<unsigned char> vbuffer
 
     binarySeq.clear();
 }
+
+unsigned long RawdataConverter::GetTimeStampinBigendian(const vector<unsigned char> vbuffer)
+{
+    unsigned long timestamp_bigendian=0;
+    
+    if(vbuffer.size()<11)
+        throw std::out_of_range("Input package buffer length too short! GetTimeStampinBigendian()");
+    
+    for(int m=0; m < 8; ++m)
+    {
+        timestamp_bigendian |= static_cast<unsigned long>(vbuffer[4+m]) << (56-8*m);
+    }
+
+    return  timestamp_bigendian;
+}
+
