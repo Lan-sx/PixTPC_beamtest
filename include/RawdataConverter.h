@@ -15,15 +15,19 @@
 #include <array>
 #include <string>
 #include <fstream>
+#include <cmath>
 #include <bitset>
 #include <iomanip>
 #include <exception>
 #include <memory>
+#include <set>
 
 //ROOT CERN
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1D.h"
+#include "TString.h"
+#include "TCanvas.h"
 
 //User
 #include "JsonStruct.h"
@@ -38,8 +42,12 @@ using namespace std;
 class RawdataConverter
 {
 public: 
+    //Default Ctors
     RawdataConverter(std::string& rawdatafilename,std::string& rawrootfilename);
     RawdataConverter(const char* rawdatafilename);
+    //Ctor with Task Json struct
+    RawdataConverter(const TaskConfigStruct::RawdataConvParsList inputPars);
+    //Dtor
     ~RawdataConverter();
    
     // 2024-07-06: convert function, only one TEPIX Chip used, need to update when Det & Ele commissioning
@@ -48,19 +56,23 @@ public:
     bool DoUnpackageRawdata2ROOT(int numofChipUsed);
     // TODO, add a function to merge root data. 
     // There will be 3 CUBES boards with 3 IP addresses and each board will output a data file with 8 TEPIX chips
+    bool DoUnpackageRawdata2ROOT_withMultiIP();
 
     //Switch debug 
     void EnableUnpackgeDebug() { fIsdebug = true; } 
     void DisableUnpackgeDebug() { fIsdebug = false; }
+    //Config debug hist
     void SetdebugHistIndex(int chips, int evtoverThreshold, bool amp=true) { 
         fChipdebug= chips < 8 ? chips : 0; 
         fOverThdebug= evtoverThreshold < 4 ? evtoverThreshold : 0; 
         fAmpOrTime=amp; 
     }
+    //Get Debug Hist
     decltype(auto) GetDebugHist() { return fHistdebug; }
 
     //Set/Config Debug histogram bins,start bins, end bins when EnableUnpackgeDebug
-    void  ConfigDebugHist(TaskConfigStruct::HistConfigList inputhistconfig);
+    void  ConfigDebugHist(TaskConfigStruct::HistConfigList inputhistconfig); // for single input file
+    void  ConfigDebugHist(int converter_idx, int nbins, int start, int end); // for multi input file
 
 protected:
     //----------------------------------------
@@ -99,6 +111,7 @@ private:
     string fRootName;
     ifstream* f_file;
     PixelTPCdata* fPixtpcdata;
+    TaskConfigStruct::RawdataConvParsList f_InputPars;
     
     //histogram config, used in debug
     //TaskConfigStruct::HistConfigList fHistconfig;
