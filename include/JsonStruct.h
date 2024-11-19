@@ -33,6 +33,25 @@ struct ChipChnMaps_V1
                                    localIdx,chipchnIdx,pixelNoise,chipName,IOidxArr)
 };
 
+//structure for RawdataConverter
+struct RawdataConvParsList
+{
+    bool Isdebug;
+    int NumOfIpAddress;
+    int IpAddress[3];
+    int NumberOfChipsUsed[3];
+    int ChidIdxdebugArray[3];   //for debug
+    int OverThreshArray[3];     //for debug
+    bool AmpOrTimeArray[3];     //for debug
+    double HistdebugConfig[3*3];//for debug
+    std::string InputfileArray[3];
+    std::string OutputfileArray[3];
+    std::string OutputfileMerge;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(RawdataConvParsList,Isdebug,NumOfIpAddress,
+                                   IpAddress,NumberOfChipsUsed,ChidIdxdebugArray,OverThreshArray,
+                                   AmpOrTimeArray,HistdebugConfig,InputfileArray,OutputfileArray,OutputfileMerge)
+};
 
 //structure for Generate simulation data
 struct GenSimDataParsList
