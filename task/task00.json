@@ -1,0 +1,27 @@
+{
+    "Comments"   : "Convert raw binary data to root data",
+    "Tasktype"   : 0,
+    "GlobalChipChnMapsJson": "/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/config/ChipChnMapsV1.json",
+    "RawdataConvParsList":
+    {
+        "Isdebug"    : true,
+        "NumOfIpAddress": 3,
+        "IpAddress"  : [0,1,2],
+        "NumberOfChipsUsed": [8,8,8],
+        "ChidIdxdebugArray": [7,3,4],
+        "OverThreshArray" : [0,1,2],
+        "AmpOrTimeArray" : [true,true,true],
+        "HistdebugConfig": [600,0,6000,
+                            600,0,6000,
+                            500,0,5000],
+        "InputfileArray": [
+                           "/mnt/d/Data/experiment/DESYBeamTest/test/TEPIX_DAQ_jianmeng/1108/2024_11_08_15_17_53.dat",
+                           "/mnt/d/Data/experiment/DESYBeamTest/test/TEPIX_DAQ_jianmeng/1108/2024_11_08_15_17_53.dat",
+                           "/mnt/d/Data/experiment/DESYBeamTest/test/TEPIX_DAQ_jianmeng/1108/2024_11_08_15_17_53.dat"],
+        "OutputfileArray": [
+                           "./Rawexpdata8chips_0.root",
+                           "./Rawexpdata8chips_1.root",
+                           "./Rawexpdata8chips_2.root"],
+        "OutputfileMerge" : "./Rawexpdata24chips_merge_test.root"
+    }
+}
