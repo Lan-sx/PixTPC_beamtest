@@ -51,7 +51,7 @@ public:
     ~RawdataConverter();
    
     // 2024-07-06: convert function, only one TEPIX Chip used, need to update when Det & Ele commissioning
-    bool DoUnpackage();
+    //bool DoUnpackage(); delete 2024-11-21
     // 2024-10-08: test ref Jianmeng Dong data
     bool DoUnpackageRawdata2ROOT(int numofChipUsed);
     // TODO, add a function to merge root data. 
