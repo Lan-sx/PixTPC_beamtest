@@ -371,6 +371,8 @@ TCanvas* PrintProcessor::Plot1DHistQT()
                     //FIXME,
                     //for external trigger case: only plot 0-th over threshold QT
                 }
+                //else
+                //    std::printf("[AAAAAAAAAAAA]:entryid=%d, chipid=%d, chn_id=%d \n",ii0,ii1,ii2);
             }
         }
     }
