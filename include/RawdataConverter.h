@@ -84,6 +84,18 @@ protected:
     vector<long long> find_header(ifstream* fin,unsigned char *tar,int lengthtar);
 
     //----------------------------------------
+    //@brief check data tail : 0xAA55 
+    //@param vector<unsigned char>: data package buffer
+    //----------------------------------------
+    inline bool check_tail(const vector<unsigned char> vbuffer);
+
+    //----------------------------------------
+    //@brief check chip index: 0-7
+    //@param vector<unsigned char>: data package buffer
+    //----------------------------------------
+    inline bool check_chipindex(const vector<unsigned char> vbuffer);
+
+    //----------------------------------------
     //@brief description: Read Time stamp in big endian
     //@param vector<unsigned char>: data package buffer
     //----------------------------------------
@@ -123,11 +135,30 @@ private:
     int fOverThdebug;
 };
 
+inline bool RawdataConverter::check_tail(const vector<unsigned char> vbuffer)
+{
+    auto last_byte = vbuffer.at(vbuffer.size()-1);
+    auto lastlast_byte = vbuffer.at(vbuffer.size()-2);
+    
+    if(last_byte == 0x55 && lastlast_byte == 0xaa)
+        return true;
+    else
+        return false;
+}
+
+inline bool RawdataConverter::check_chipindex(const vector<unsigned char> vbuffer)
+{
+    int chipNumber = static_cast<int>(vbuffer.at(2))*4+static_cast<int>(vbuffer.at(3));
+    if(chipNumber<0 || chipNumber>=8)
+        return false;
+    else 
+        return true;
+}
 
 inline void RawdataConverter::printHeaderTail(const vector<unsigned char> vecbuffer)
 {
 
-    cout<<"Head: ";
+    cout<<"[cepcPixTPC INFO]: Head: ";
     cout<<std::hex<<std::setw(2)<<std::setfill('0')
         <<static_cast<int>(vecbuffer.at(0))
         <<std::hex<<std::setw(2)<<std::setfill('0')
@@ -141,7 +172,7 @@ inline void RawdataConverter::printHeaderTail(const vector<unsigned char> vecbuf
 
 inline void RawdataConverter::printChipNumber(const vector<unsigned char> vecbuffer)
 {
-    cout<<"Chip Number: ";
+    cout<<"[cepcPixTPC INFO]: Chip Number: ";
     cout<<std::hex<<std::setw(2)<<std::setfill('0')
         <<static_cast<int>(vecbuffer.at(2))
         <<std::hex<<std::setw(2)<<std::setfill('0')
@@ -151,7 +182,7 @@ inline void RawdataConverter::printChipNumber(const vector<unsigned char> vecbuf
 
 inline void RawdataConverter::printTimeStamp (const vector<unsigned char> vecbuffer)
 {
-    std::cout<<"TimeStamp: ";
+    std::cout<<"[cepcPixTPC INFO]: TimeStamp: ";
     for(int ii=0; ii<8;++ii) 
     {
         cout<<std::hex<<std::setw(2)<<std::setfill('0')
@@ -162,7 +193,7 @@ inline void RawdataConverter::printTimeStamp (const vector<unsigned char> vecbuf
 
 inline void RawdataConverter::printTriggerNum(const vector<unsigned char> vecbuffer)
 {
-    std::cout<<"Trigger Number: ";
+    std::cout<<"[cepcPixTPC INFO]: Trigger Number: ";
     for(int ii=0; ii<4;++ii) 
     {
         cout<<std::hex<<std::setw(2)<<std::setfill('0')

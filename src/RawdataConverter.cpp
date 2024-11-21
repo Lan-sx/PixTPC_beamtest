@@ -301,33 +301,38 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
         vBuffer.resize(bufferlength);
         f_file->read(reinterpret_cast<char*>(vBuffer.data()),bufferlength);
 
-        if(fIsdebug && ii<10)
+#if 1
+        if(bufferlength < __MindataLength__ || !check_tail(vBuffer))
         {
-            printHeaderTail(vBuffer);    
-            printChipNumber(vBuffer);
+            ChippackageLengthWarning = true;
+            //printf("[AAAAAAAAA]: bufferlength=%lld, Global Index=%d",bufferlength,globaltriggleId);
+            //if(bufferlength>4)
+            //    std::cout<<" "<<static_cast<int>(vBuffer.at(2))<<"\t"<<static_cast<int>(vBuffer.at(3))<<"\t"<<static_cast<int>(vBuffer.at(2))*4+static_cast<int>(vBuffer.at(3));
+            //printf("\n");
+            continue;
+        }
+
+        if(!check_chipindex(vBuffer))
+            continue;
+
+        int chipNumber = static_cast<int>(vBuffer.at(2))*4+static_cast<int>(vBuffer.at(3));
+
+        if(fIsdebug && ii<40)
+        {
+            //printHeaderTail(vBuffer);    
+            //printChipNumber(vBuffer);
             //printTimeStamp(vBuffer);
             //printTriggerNum(vBuffer);
         }
-        
-#if 1
-        if(bufferlength!=1858)
-        {
-            //if(fIsdebug)
-            //    PixTPCLog(PIXtpcERROR,"There are Package length errors",true);
-            ChippackageLengthWarning = true;
-            continue;
-        }
-        int chipNumber = static_cast<int>(vBuffer.at(2))*4+static_cast<int>(vBuffer.at(3));
 
         //init post timestamp 
         //std::memcpy(&posTimestamp,&vBuffer.at(4),sizeof(long));// little-endian 
         posTimestamp = this->GetTimeStampinBigendian(vBuffer);
         if(ii==1)
             preTimestamp = posTimestamp;
-            //std::memcpy(&preTimestamp,&vBuffer.at(4),sizeof(long));
 
         if(fIsdebug && ii<10)
-            std::cout<<std::hex<<"[cepcPixTPC DEBUG]: pre: "<<preTimestamp<<" pos:"<<posTimestamp<<std::endl;
+            std::cout<<std::hex<<"[cepcPixTPC DEBUG]: pre: "<<preTimestamp<<" pos:"<<posTimestamp<<"\t"<<chipNumber<<std::endl;
 
         if(preTimestamp == posTimestamp)
         {
@@ -340,8 +345,8 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
             //set globaltriggleId and Fill tree
             //fPixtpcdata->SetTiggleID(globaltriggleId);
             fPixtpcdata->SetTiggleID(preTimestamp);
-            if(fIsdebug && ii<10)
-                std::cout<<std::hex<<":> Trigger ID:"<<fPixtpcdata->GetTriggleID()<<std::endl;
+            //if(fIsdebug && ii<30)
+            //    std::cout<<std::hex<<":> Trigger ID:"<<fPixtpcdata->GetTriggleID()<<std::endl;
             
             tr_out->Fill();
             globaltriggleId++;
@@ -360,7 +365,7 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
     f_file->close();
 
     if(ChippackageLengthWarning)
-        PixTPCLog(PIXtpcWARNING,"Chips data length error !!!",false);
+        PixTPCLog(PIXtpcWARNING,"Packet loss, no data of some chips in one entry",false);
 #if 1
     tr_out->Write();
     delete tr_out;
