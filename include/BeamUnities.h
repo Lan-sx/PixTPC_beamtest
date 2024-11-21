@@ -29,6 +29,8 @@ constexpr int  __ROW__=10;
 constexpr int  __COL__=300;
 constexpr int  __NumChip__=24;
 constexpr int __NumChn__=128;
+// Head(2)+ChipIdx(2)+TimeStamp(8)+TriggerID(4)+Tail = 18 Byte, ref Jianmeng Dong, 20241121
+constexpr int __MindataLength__ = 18; 
 
 constexpr double PixelSize = 0.04; // [cm]
 constexpr double PixelPitch = 0.01; // [cm]
