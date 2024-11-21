@@ -597,6 +597,7 @@ void RawdataConverter::FillPixelTPCdataTable(const vector<unsigned char> vbuffer
         }
         else
         {
+            (*fPixtpcdata)(chipnumber,chn_id).resize(4);
             evt_flag = static_cast<bool>(binarySeq.at(INDEX));
             //!!! For std::bitset<N> bs, index from right to left
             evtBits[1]=binarySeq.at(INDEX+1);
@@ -639,8 +640,10 @@ void RawdataConverter::FillPixelTPCdataTable(const vector<unsigned char> vbuffer
                 //20241111: Ref Jianmeng Dong, Max. chip is 8 for each readout board  
                 if(chipnumber<8)
                 {
-                    (*fPixtpcdata)(chipnumber,chn_id).push_back(std::make_pair(timeBits.to_ulong(),
-                                                                               ampBits.to_ulong()));
+                    //(*fPixtpcdata)(chipnumber,chn_id).push_back(std::make_pair(timeBits.to_ulong(),
+                    //                                                           ampBits.to_ulong()));
+                    auto QT_pair_thisOverThresh = std::make_pair(timeBits.to_ulong(),ampBits.to_ulong());
+                    (*fPixtpcdata)(chipnumber,chn_id).at(i_evt) = QT_pair_thisOverThresh;
                 }
 
             }//end of channel evts 
