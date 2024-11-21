@@ -34,17 +34,6 @@ std::vector<TaskConfigStruct::ChipChnMaps_V1> GlobalJsonMaps;
 
 using namespace std;
 
-void FillPixelTPCdata()
-{
-    try {
-        RawdataConverter* myConvert = new RawdataConverter("/mnt/e/WorkSpace/DESYBeam_Test/test/TEPIX_test_canwen/0619_new_4/data_lg_300ns.dat_r.dat");
-        myConvert->DoUnpackage();
-        delete myConvert;
-    }catch (const std::exception& e)
-    {
-        std::cerr<< "Error: "<< e.what() <<std::endl;
-    }
-}
 
 void test01()
 {
@@ -194,7 +183,6 @@ int main(int argc, char** argv)
         try {
             CEPCPixtpcRunManager->InitialMapsManually("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/config/ChipChnMapsV1.csv");
             //CEPCPixtpcRunManager->InitialMapsFromJson()
-            //FillPixelTPCdata();
             test01();
             //test02();
             //test03(std::atof(argv[2]));
