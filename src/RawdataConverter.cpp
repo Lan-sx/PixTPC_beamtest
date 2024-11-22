@@ -61,27 +61,27 @@ void  RawdataConverter::ConfigDebugHist(TaskConfigStruct::HistConfigList inputhi
         PixTPCLog(PIXtpcWARNING,"Only used in debug mode",false);
         return;
     }
-    
+
     auto hist_name = inputhistconfig.Histname.data();
     auto hist_title = inputhistconfig.Histtitle.data();
     fHistdebug = std::make_shared<TH1D>(hist_name,hist_title,inputhistconfig.Histbins[0],
-                                                             inputhistconfig.HistXYstart[0],
-                                                             inputhistconfig.HistXYend[0]);
+                                        inputhistconfig.HistXYstart[0],
+                                        inputhistconfig.HistXYend[0]);
     PixTPCLog(PIXtpcDebug,"RawdataConverter debug hist created! fill Q/T from i-th chip",false);
 }
 
 void  RawdataConverter::ConfigDebugHist(int converter_idx, int nbins, int x_start, int x_end)
 {
-     if(!fIsdebug)
+    if(!fIsdebug)
     {
         PixTPCLog(PIXtpcWARNING,"Only used in debug mode",false);
         return;
     }
-    
+
     TString hist_name = Form("hist_debug%d",converter_idx);
 
     fHistdebug = std::make_shared<TH1D>(hist_name.Data(),"", nbins, x_start, x_end);
-                                                             
+
     PixTPCLog(PIXtpcINFO,"RawdataConverter debug hist created! fill Q/T from i-th chip",false);
 }
 
@@ -131,7 +131,7 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
         //Start to Unpackage for this input file
         //TODO, multi thread implementation???
         auto flag_i = myConverter_i->DoUnpackageRawdata2ROOT(numofchipsused_i);
-        
+
         if(isdebugflag)
         {
             auto histdebug_i = myConverter_i->GetDebugHist();
@@ -144,8 +144,12 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
         }
         delete myConverter_i;
     }
-    
     PixTPCLog(PIXtpcINFO,Form(":> %d input binary files convert to root files",numofIpaddress),false);
+    if(numofIpaddress==1)
+    {
+        PixTPCLog(PIXtpcINFO,"Only one IP input, skip merge process!!!",false);
+        return true;
+    }
 
     //===================================================================
     //Merge all sub .root files from different IP(readout board)
@@ -155,6 +159,7 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
     TTree** Arrtree = new TTree*[numofIpaddress];
     PixelTPCdata** ArrPixTPCdata = new PixelTPCdata*[numofIpaddress];
     std::set<long> entry_set;
+    std::map<unsigned long, std::vector<long long>> MapTimeStampAll;
     for(int file_i=0; file_i<numofIpaddress; ++file_i)
     {
         Arrfile[file_i] = TFile::Open(f_InputPars.OutputfileArray[file_i].c_str());
@@ -164,72 +169,67 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
             std::printf("[cepcPixTPC INFO]: %lld entries in %d-th sub .root\n",Arrtree[file_i]->GetEntries(),file_i);
 
         entry_set.insert(Arrtree[file_i]->GetEntries());
-        ArrPixTPCdata[file_i] = new PixelTPCdata(f_InputPars.NumberOfChipsUsed[file_i]);
-        Arrtree[file_i]->SetBranchAddress("pixelTPCdata",&ArrPixTPCdata[file_i]);
+
+        if(f_InputPars.Ismerge)
+        {
+            ArrPixTPCdata[file_i] = new PixelTPCdata(f_InputPars.NumberOfChipsUsed[file_i]);
+            Arrtree[file_i]->SetBranchAddress("pixelTPCdata",&ArrPixTPCdata[file_i]);
+            for(long long entry_idx = 0; entry_idx < Arrtree[file_i]->GetEntries(); ++entry_idx)
+            {
+                Arrtree[file_i]->GetEntry(entry_idx);
+                auto tmp_timestamp = ArrPixTPCdata[file_i]->GetTriggleID();
+                MapTimeStampAll[tmp_timestamp].push_back(entry_idx);
+            }
+        }
     }
-    //Check data length (entries) of each sub .root file
     if(entry_set.size()>1)
     {
-        PixTPCLog(PIXtpcERROR,"Data length of sub .root file error",true);
-        PixTPCLog(PIXtpcINFO,"Merge processing break!!!",false);
-        
-        //Free 
-        for(int file_i=0; file_i<numofIpaddress; ++file_i)
-        {
-            delete  ArrPixTPCdata[file_i];
-            delete  Arrtree[file_i];
-            delete  Arrfile[file_i];
-        }
-        delete  []ArrPixTPCdata;
-        delete  []Arrtree;
-        delete  []Arrfile;
-        PixTPCLog(PIXtpcINFO,"Delete all sub .root pointers!!!",false);
+        PixTPCLog(PIXtpcINFO,"TimeStamp need Sync !!!",false);
+    }
+    //Control merge
+    if(!f_InputPars.Ismerge)
+    {
+        PixTPCLog(PIXtpcINFO,"Skip Merge sub .root files Process!!!",false);
         return false;
     }
-    else
+    //std::printf("[ Debug ] There are %zu TimeStamps\n",MapTimeStampAll.size());
+
+    PixTPCLog(PIXtpcINFO,"Start Merging all sub .root!!!",false);
+    //Create merge output .root file
+    auto mergefile = std::make_unique<TFile>(f_InputPars.OutputfileMerge.c_str(),"RECREATE");
+    mergefile->cd();
+    auto mergetree = new TTree("PixTPCdata","raw data (merged)");
+    auto dataTableMerge = new PixelTPCdata(NumOfChipsToMerge);
+    mergetree->Branch("pixelTPCdata",&dataTableMerge);
+
+    //Loop all Time Stamp 
+    size_t Cnt_timestamp = 0;
+    for(const auto& [timestamp,vecentryidx] : MapTimeStampAll)
     {
-        PixTPCLog(PIXtpcINFO,"Start Merging all sub .root!!!",false);
-        //Create merge output .root file
-        auto mergefile = std::make_unique<TFile>(f_InputPars.OutputfileMerge.c_str(),"RECREATE");
-        mergefile->cd();
-        auto mergetree = new TTree("PixTPCdata","raw data (merged)");
-        auto dataTableMerge = new PixelTPCdata(NumOfChipsToMerge);
-        mergetree->Branch("pixelTPCdata",&dataTableMerge);
-        //Loop all Entries
-        //for(long long entry_i=0; entry_i<100; ++entry_i)
-        for(long long entry_i=0; entry_i<Arrtree[0]->GetEntries(); ++entry_i)
+        //Print progress
+        if(Cnt_timestamp%1000==0)
+            std::printf("[cepcPixTPC INFO]: ### %zu Timestamps Processed!\n",Cnt_timestamp++);
+        if(vecentryidx.size() == numofIpaddress)     
         {
+            //std::printf("[ Debug ] timestamp=0x%lX",timestamp);
+            //for(const auto& entry_idx : vecentryidx)
+            //    std::printf(" %lld, ",entry_idx);
+            //std::printf("\n");
+            //for(long long entry_i=0; entry_i<100; ++entry_i)
+
             //Get i-th Entry
-            for(int file_i=0; file_i<numofIpaddress; ++file_i)
-                Arrtree[file_i]->GetEntry(entry_i);
-            //Print progress
-            if(entry_i%2000==0)
-                std::printf("[cepcPixTPC INFO]: ### %lld*3 entries Filled!\n",entry_i);
-            //Check TimeStamp
-            //if abs(Timestamp_i - Timestamp_k)>1, continue
-            unsigned long Timestamp_i = ArrPixTPCdata[0]->GetTriggleID();
-            unsigned long Timestamp_k = 0;
-            for(int file_i=1; file_i<numofIpaddress; ++file_i)
-            {
-                Timestamp_k = ArrPixTPCdata[file_i] ->GetTriggleID();
-                if(std::fabs(Timestamp_k-Timestamp_i)>1) // 1, max difference between each IP
-                {
-                    if(isdebugflag)
-                        std::cout<<"[cepcPixTPC INFO]: "<<std::hex<<Timestamp_i<<","<<Timestamp_k<<std::endl;
-                    continue;
-                }
-                else 
-                    Timestamp_i = Timestamp_k;
-            }
+            for(size_t nn=0; nn<vecentryidx.size();++nn)
+                Arrtree[nn]->GetEntry(vecentryidx.at(nn));
 
             //Fill merge PixTPCdata table
             for(int file_i=0; file_i<numofIpaddress; ++file_i)
             {
-                for(int chip_index=0; chip_index < f_InputPars.NumberOfChipsUsed[file_i]; ++chip_index)
+                for(int chip_index=0; chip_index<f_InputPars.NumberOfChipsUsed[file_i];++chip_index)
                 {
                     for(int chn_index=0; chn_index < __NumChn__; ++chn_index)
                     {
                         auto size_chip_chn = (*ArrPixTPCdata[file_i])(chip_index,chn_index).size();
+                        //FIXME only avaiable for 8+4 8+8 8+8+8 mode
                         int globalChip_index = chip_index + 8*file_i;
                         for(size_t overthresh=0; overthresh < size_chip_chn; ++overthresh)
                         {
@@ -239,32 +239,31 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
                     }
                 }
             }
-            dataTableMerge->SetTiggleID(Timestamp_i);
+            dataTableMerge->SetTiggleID(timestamp);
             //Fill mergetree
             mergetree->Fill();
             //Clear current dataTable
             dataTableMerge->ClearPixelTPCdata(NumOfChipsToMerge);
         }
-        
-        //Write file
-        mergetree->Write();
-        delete mergetree;
-        //Close merged root file
-        mergefile->Close();
-        //Free
-        for(int file_i=0; file_i<numofIpaddress; ++file_i)
-        {
-            delete  ArrPixTPCdata[file_i];
-            delete  Arrtree[file_i];
-            delete  Arrfile[file_i];
-        }
-        delete  []ArrPixTPCdata;
-        delete  []Arrtree;
-        delete  []Arrfile;
-        PixTPCLog(PIXtpcINFO,"Delete all sub .root pointers!!!",false);
-        PixTPCLog(PIXtpcINFO,"Merge processing successfully!!!",false);
-        return true;
     }
+    //Write file
+    mergetree->Write();
+    delete mergetree;
+    //Close merged root file
+    mergefile->Close();
+    //Free
+    for(int file_i=0; file_i<numofIpaddress; ++file_i)
+    {
+        delete  ArrPixTPCdata[file_i];
+        delete  Arrtree[file_i];
+        delete  Arrfile[file_i];
+    }
+    delete  []ArrPixTPCdata;
+    delete  []Arrtree;
+    delete  []Arrfile;
+    PixTPCLog(PIXtpcINFO,"Delete all sub .root pointers!!!",false);
+    PixTPCLog(PIXtpcINFO,"Merge processing successfully!!!",false);
+    return true;
 }
 
 bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
@@ -276,19 +275,19 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
     //buffer vector
     vector<unsigned char> vBuffer;
 
-#if 1
     //Create TFile/TTree 
     auto outfile = std::make_unique<TFile>(fRootName.c_str(),"RECREATE");
     outfile->cd();
     auto tr_out = new TTree("PixTPCdata","raw tpc channel data");
     fPixtpcdata = new PixelTPCdata(numofChipUsed);//  TEPIX chips test ret
     tr_out->Branch("pixelTPCdata",&fPixtpcdata);
-#endif
 
     unsigned long preTimestamp=0;
     unsigned long posTimestamp=0;
     int globaltriggleId =0;
     bool ChippackageLengthWarning = false;
+    //int chipnumberCnt_perTimestamp = 0;
+    int entry_id_debug= 3;
 
     //loop all packages 
     for(size_t ii=1; ii<vheaderPos.size(); ++ii)
@@ -297,11 +296,10 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
             std::printf("[cepcPixTPC INFO]: ### %zu packages Done!\n",ii);
 
         auto bufferlength = vheaderPos.at(ii)-vheaderPos.at(ii-1);
-        
+
         vBuffer.resize(bufferlength);
         f_file->read(reinterpret_cast<char*>(vBuffer.data()),bufferlength);
 
-#if 1
         if(bufferlength < __MindataLength__ || !check_tail(vBuffer))
         {
             ChippackageLengthWarning = true;
@@ -311,54 +309,77 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
             //printf("\n");
             continue;
         }
-
-        if(!check_chipindex(vBuffer))
-            continue;
-
-        int chipNumber = static_cast<int>(vBuffer.at(2))*4+static_cast<int>(vBuffer.at(3));
-
-        if(fIsdebug && ii<40)
+#if 0
+        if(fIsdebug && ii>=55 && ii<=71)
         {
-            //printHeaderTail(vBuffer);    
-            //printChipNumber(vBuffer);
-            //printTimeStamp(vBuffer);
-            //printTriggerNum(vBuffer);
+            std::printf("[------- Debug Block------\n");
+            std::printf("ii=%zu bufferlength=%lld \n",ii,bufferlength);
+            printHeaderTail(vBuffer);
+            printChipNumber(vBuffer);
+            printTimeStamp(vBuffer);
+            printTriggerNum(vBuffer);
+            std::printf("------- Debug Block------]\n");
         }
-
+#endif
+        int chipNumber = check_chipindex(vBuffer);
+        if(chipNumber<0)
+        {
+#if 0
+            if(fIsdebug)
+            {
+                //std::cout<<std::hex<<"[cepcPixTPC DEBUG]: pre: "<<preTimestamp<<" pos:"<<posTimestamp<<"\t"<<chipNumber<<std::endl;
+                std::printf("[------- Debug Block------\n");
+                std::printf("ii=%zu bufferlength=%lld \n",ii,bufferlength);
+                printHeaderTail(vBuffer);
+                printChipNumber(vBuffer);
+                printTimeStamp(vBuffer);
+                printTriggerNum(vBuffer);
+                std::printf("------- Debug Block------]\n");
+            }
+#endif
+            continue;
+        }
         //init post timestamp 
         //std::memcpy(&posTimestamp,&vBuffer.at(4),sizeof(long));// little-endian 
         posTimestamp = this->GetTimeStampinBigendian(vBuffer);
         if(ii==1)
             preTimestamp = posTimestamp;
-
-        if(fIsdebug && ii<10)
-            std::cout<<std::hex<<"[cepcPixTPC DEBUG]: pre: "<<preTimestamp<<" pos:"<<posTimestamp<<"\t"<<chipNumber<<std::endl;
-
+#if 0
+        if(fIsdebug)
+        {
+            if(fabs(globaltriggleId-entry_id_debug)<=2)
+            {
+                std::printf("[AAAAA]:ii=%zu,entry%d, chipidx = %d, T=0x%lX, bufferlength=%lld\n",ii,globaltriggleId,chipNumber,posTimestamp,bufferlength);
+                //printChipNumber(vBuffer);
+                //printHeaderTail(vBuffer);    
+                //printTimeStamp(vBuffer);
+                //printTriggerNum(vBuffer);
+            }
+        }
+#endif
         if(preTimestamp == posTimestamp)
         {
             this->FillPixelTPCdataTable(vBuffer,chipNumber);
             //update pre time stamp
             preTimestamp = posTimestamp;
+            //chipnumberCnt_perTimestamp++;
         }
         else
         {
             //set globaltriggleId and Fill tree
-            //fPixtpcdata->SetTiggleID(globaltriggleId);
             fPixtpcdata->SetTiggleID(preTimestamp);
-            //if(fIsdebug && ii<30)
-            //    std::cout<<std::hex<<":> Trigger ID:"<<fPixtpcdata->GetTriggleID()<<std::endl;
-            
+            //if(chipnumberCnt_perTimestamp<8)
+            //    std::printf("[AAAAAAAAAAAAAAAAAAA] global timestamp = %d, cnt = %d\n",globaltriggleId,chipnumberCnt_perTimestamp);
             tr_out->Fill();
             globaltriggleId++;
             //resize fPixtpcdata
             fPixtpcdata->ClearPixelTPCdata(numofChipUsed);
-            
+            //chipnumberCnt_perTimestamp=0;
             //fill this step data
             this->FillPixelTPCdataTable(vBuffer,chipNumber);
             //update pre time stamp
-            preTimestamp = posTimestamp;
+            preTimestamp = posTimestamp;//chipnumberCnt_perTimestamp++;
         }
-#endif
     }//end of data
 
     //close file
@@ -366,11 +387,10 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
 
     if(ChippackageLengthWarning)
         PixTPCLog(PIXtpcWARNING,"Packet loss, no data of some chips in one entry",false);
-#if 1
+
     tr_out->Write();
     delete tr_out;
     outfile->Close();
-#endif
 
     PixTPCLog(PIXtpcINFO,Form("Raw binary data convert to ROOT data done!"),false);
 
@@ -501,7 +521,7 @@ void RawdataConverter::FillPixelTPCdataTable(const vector<unsigned char> vbuffer
                 }
 
             }//end of channel evts 
-            
+
             //update INDEX
             INDEX = INDEX+3+28*evt_num;
         }
@@ -513,10 +533,10 @@ void RawdataConverter::FillPixelTPCdataTable(const vector<unsigned char> vbuffer
 unsigned long RawdataConverter::GetTimeStampinBigendian(const vector<unsigned char> vbuffer)
 {
     unsigned long timestamp_bigendian=0;
-    
+
     if(vbuffer.size()<11)
         throw std::out_of_range("Input package buffer length too short! GetTimeStampinBigendian()");
-    
+
     for(int m=0; m < 8; ++m)
     {
         timestamp_bigendian |= static_cast<unsigned long>(vbuffer[4+m]) << (56-8*m);
