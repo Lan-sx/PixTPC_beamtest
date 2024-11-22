@@ -37,6 +37,7 @@ struct ChipChnMaps_V1
 struct RawdataConvParsList
 {
     bool Isdebug;
+    bool Ismerge;  // control merge 
     int NumOfIpAddress;
     int IpAddress[3];
     int NumberOfChipsUsed[3];
@@ -48,7 +49,7 @@ struct RawdataConvParsList
     std::string OutputfileArray[3];
     std::string OutputfileMerge;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(RawdataConvParsList,Isdebug,NumOfIpAddress,
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(RawdataConvParsList,Isdebug,Ismerge,NumOfIpAddress,
                                    IpAddress,NumberOfChipsUsed,ChidIdxdebugArray,OverThreshArray,
                                    AmpOrTimeArray,HistdebugConfig,InputfileArray,OutputfileArray,OutputfileMerge)
 };
