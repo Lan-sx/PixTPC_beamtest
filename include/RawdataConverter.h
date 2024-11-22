@@ -93,7 +93,7 @@ protected:
     //@brief check chip index: 0-7
     //@param vector<unsigned char>: data package buffer
     //----------------------------------------
-    inline bool check_chipindex(const vector<unsigned char> vbuffer);
+    inline int check_chipindex(const vector<unsigned char> vbuffer);
 
     //----------------------------------------
     //@brief description: Read Time stamp in big endian
@@ -146,60 +146,37 @@ inline bool RawdataConverter::check_tail(const vector<unsigned char> vbuffer)
         return false;
 }
 
-inline bool RawdataConverter::check_chipindex(const vector<unsigned char> vbuffer)
+inline int RawdataConverter::check_chipindex(const vector<unsigned char> vbuffer)
 {
     int chipNumber = static_cast<int>(vbuffer.at(2))*4+static_cast<int>(vbuffer.at(3));
     if(chipNumber<0 || chipNumber>=8)
-        return false;
+        return -1;
     else 
-        return true;
+        return chipNumber;
 }
 
 inline void RawdataConverter::printHeaderTail(const vector<unsigned char> vecbuffer)
 {
-
-    cout<<"[cepcPixTPC INFO]: Head: ";
-    cout<<std::hex<<std::setw(2)<<std::setfill('0')
-        <<static_cast<int>(vecbuffer.at(0))
-        <<std::hex<<std::setw(2)<<std::setfill('0')
-        <<static_cast<int>(vecbuffer.at(1))<<" ";
-    cout<<"Tail: ";
-    cout<<std::hex<<std::setw(2)<<std::setfill('0')
-        <<static_cast<int>(vecbuffer.at(vecbuffer.size()-2))
-        <<std::hex<<std::setw(2)<<std::setfill('0')
-        <<static_cast<int>(vecbuffer.at(vecbuffer.size()-1))<<endl;
+    auto tmpsize = vecbuffer.size();
+    std::printf("[cepcPixTPC INFO]: Head: 0x%02X 0x%02X Tail:0x%02X 0x%02X \n",vecbuffer.at(0),vecbuffer.at(1),
+                                                                               vecbuffer.at(tmpsize-2),vecbuffer.at(tmpsize-1));
 }
 
 inline void RawdataConverter::printChipNumber(const vector<unsigned char> vecbuffer)
 {
-    cout<<"[cepcPixTPC INFO]: Chip Number: ";
-    cout<<std::hex<<std::setw(2)<<std::setfill('0')
-        <<static_cast<int>(vecbuffer.at(2))
-        <<std::hex<<std::setw(2)<<std::setfill('0')
-        <<static_cast<int>(vecbuffer.at(3));
-    cout<<" -> "<<std::dec<<static_cast<int>(vecbuffer.at(2))*4+static_cast<int>(vecbuffer.at(3))<<endl;
+    std::printf("[cepcPixTPC INFO]: ChipNumber: 0x%02X 0x%02X\n",vecbuffer.at(2),vecbuffer.at(3));
 }
 
 inline void RawdataConverter::printTimeStamp (const vector<unsigned char> vecbuffer)
 {
-    std::cout<<"[cepcPixTPC INFO]: TimeStamp: ";
-    for(int ii=0; ii<8;++ii) 
-    {
-        cout<<std::hex<<std::setw(2)<<std::setfill('0')
-            <<static_cast<int>(static_cast<unsigned char>(vecbuffer.at(ii+4)))<<" ";
-    }
-    cout<<endl;
+    auto postimestamp = this->GetTimeStampinBigendian(vecbuffer);
+    std::printf("[cepcPixTPC INFO]: TimeStamp: 0x%lX\n",postimestamp);
 }
 
 inline void RawdataConverter::printTriggerNum(const vector<unsigned char> vecbuffer)
 {
-    std::cout<<"[cepcPixTPC INFO]: Trigger Number: ";
-    for(int ii=0; ii<4;++ii) 
-    {
-        cout<<std::hex<<std::setw(2)<<std::setfill('0')
-            <<static_cast<int>(static_cast<unsigned char>(vecbuffer.at(ii+12)))<<" ";
-    }
-    cout<<endl;
+    std::printf("[cepcPixTPC INFO]: Trigger Number: 0x%02X 0x%02X 0x%02X 0x%02X\n",vecbuffer.at(12),vecbuffer.at(13),
+                                                                                   vecbuffer.at(14),vecbuffer.at(15));
 }
 
 #endif
