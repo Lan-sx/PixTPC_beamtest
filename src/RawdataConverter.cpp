@@ -222,6 +222,7 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
             for(size_t nn=0; nn<vecentryidx.size();++nn)
                 Arrtree[nn]->GetEntry(vecentryidx.at(nn));
 
+            int globalChip_indexOffset = 0;
             //Fill merge PixTPCdata table
             for(int file_i=0; file_i<numofIpaddress; ++file_i)
             {
@@ -231,7 +232,8 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
                     {
                         auto size_chip_chn = (*ArrPixTPCdata[file_i])(chip_index,chn_index).size();
                         //FIXME only avaiable for 8+4 8+8 8+8+8 mode
-                        int globalChip_index = chip_index + 8*file_i;
+                        //int globalChip_index = chip_index + 8*file_i;
+                        int globalChip_index = chip_index + globalChip_indexOffset;
                         for(size_t overthresh=0; overthresh < size_chip_chn; ++overthresh)
                         {
                             auto QTpair_tmp = (*ArrPixTPCdata[file_i])(chip_index,chn_index).at(overthresh);
@@ -239,6 +241,8 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
                         }
                     }
                 }
+                //update globalChip_indexOffset 
+                globalChip_indexOffset += f_InputPars.NumberOfChipsUsed[file_i];
             }
             dataTableMerge->SetTiggleID(timestamp);
             //Fill mergetree
