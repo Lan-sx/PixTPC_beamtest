@@ -144,7 +144,8 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
         }
         delete myConverter_i;
     }
-    PixTPCLog(PIXtpcINFO,Form(":> %d input binary files convert to root files",numofIpaddress),false);
+
+    PixTPCLog(PIXtpcINFO,Form(":> %d input binary files are converted to .root files.",numofIpaddress),false);
     if(numofIpaddress==1)
     {
         PixTPCLog(PIXtpcINFO,"Only one IP input, skip merge process!!!",false);
@@ -286,7 +287,7 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
     unsigned long posTimestamp=0;
     int globaltriggleId =0;
     bool ChippackageLengthWarning = false;
-    //int chipnumberCnt_perTimestamp = 0;
+    bool ChipNumberWarning = false;      // should be 0000 0001 0002 0003 0100 0101 0102 0103 
     int entry_id_debug= 3;
 
     //loop all packages 
@@ -303,10 +304,6 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
         if(bufferlength < __MindataLength__ || !check_tail(vBuffer))
         {
             ChippackageLengthWarning = true;
-            //printf("[AAAAAAAAA]: bufferlength=%lld, Global Index=%d",bufferlength,globaltriggleId);
-            //if(bufferlength>4)
-            //    std::cout<<" "<<static_cast<int>(vBuffer.at(2))<<"\t"<<static_cast<int>(vBuffer.at(3))<<"\t"<<static_cast<int>(vBuffer.at(2))*4+static_cast<int>(vBuffer.at(3));
-            //printf("\n");
             continue;
         }
 #if 0
@@ -324,6 +321,7 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
         int chipNumber = check_chipindex(vBuffer);
         if(chipNumber<0)
         {
+            ChipNumberWarning = true;
 #if 0
             if(fIsdebug)
             {
@@ -386,14 +384,16 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
     f_file->close();
 
     if(ChippackageLengthWarning)
-        PixTPCLog(PIXtpcWARNING,"Packet loss, no data of some chips in one entry",false);
+        PixTPCLog(PIXtpcWARNING,"Packet loss, no data of some chips in one entry!!!",false);
+    if(ChipNumberWarning)
+        PixTPCLog(PIXtpcWARNING,"Packet Chip Number out of range!!! ",false);
 
+    //Write tree 
     tr_out->Write();
     delete tr_out;
     outfile->Close();
 
     PixTPCLog(PIXtpcINFO,Form("Raw binary data convert to ROOT data done!"),false);
-
     return true;
 }
 
