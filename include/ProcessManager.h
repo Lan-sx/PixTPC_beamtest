@@ -11,6 +11,8 @@
 //std 
 #include <fstream>
 #include <string>
+#include <vector>
+#include <algorithm>
 
 //nlohmann json
 #include <nlohmann/json.hpp>
@@ -26,12 +28,16 @@
 #include "RawdataConverter.h"
 #include "Processor.h"
 #include "PixHitRecoSimpleProcessor.h"
+#include "PrintProcessor.h"
 #include "GenSimData.h"
 
 using PixJson = nlohmann::json;
 
+//Legacy map
 //extern global chip chn mapping, .csv file must be provided in task.json file
 extern std::vector<std::pair<int,int>> GlobalMaps;
+//extern global json mapping, .json file muse be provided in task.json file
+extern std::vector<TaskConfigStruct::ChipChnMaps_V1> GlobalJsonMaps;
 
 class ProcessManager : public TObjArray
 {
@@ -70,6 +76,7 @@ protected:
     void StartGenMCdata();
     // Reco PixTPC hits, CEPCPixtpcTaskType: TPChitReco, 2 in json 
     void StartRecoPixTPCEvts();
+
 
 private:
     std::string fTaskjsonfile;

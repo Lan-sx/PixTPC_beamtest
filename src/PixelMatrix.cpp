@@ -9,10 +9,15 @@
 #include "PixelMatrix.h"
 
 PixelMatrix::PixelMatrix() : TMatrixDSparse(__ROW__,__COL__) , fPixelTPCdata(nullptr),
-                             fHistreadout(nullptr)
+                             fOverTh_ID(0),fNumberChipsUsed(24),fHistreadout(nullptr)
 {
 }
 
+
+PixelMatrix::PixelMatrix(int numberofChips) : TMatrixDSparse(__ROW__,__COL__) , fPixelTPCdata(nullptr),
+                             fOverTh_ID(0),fNumberChipsUsed(numberofChips),fHistreadout(nullptr)
+{
+}
 //PixelMatrix::PixelMatrix(PixelTPCdata* pixeltpcdata) : TMatrixDSparse(__ROW__,__COL__),
 //                                                        fPixelTPCdata(nullptr), fHistreadout(nullptr)
 //{
@@ -25,15 +30,19 @@ PixelMatrix::~PixelMatrix()
 
 PixelMatrix& PixelMatrix::PixelTPCdata2PixelMatrix(PixelTPCdata* pixeltpcdata,char qt)
 {
-    for(int chipsid=0; chipsid<__NumChip__; ++chipsid)
+    for(int chipsid=0; chipsid<fNumberChipsUsed; ++chipsid)
     {
         for(int chnid=0; chnid<__NumChn__; ++chnid)             
         {
             if((*pixeltpcdata)(chipsid,chnid).size()>0)
             {
                 auto rowcolpair = BeamUnities::ChipChn2RowCol(chipsid,chnid,GlobalMaps);
-                (*this)(rowcolpair.first,rowcolpair.second) = (qt=='Q') ? (*pixeltpcdata)(chipsid,chnid).at(0).second : 
-                                                                          (*pixeltpcdata)(chipsid,chnid).at(0).first;
+                //add row col check
+                if(rowcolpair.first >=0 && rowcolpair.second >=0)
+                {
+                    (*this)(rowcolpair.first,rowcolpair.second) = (qt=='Q') ? (*pixeltpcdata)(chipsid,chnid).at(fOverTh_ID).second : 
+                        (*pixeltpcdata)(chipsid,chnid).at(fOverTh_ID).first;
+                }
             }
         }
     }

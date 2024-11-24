@@ -14,7 +14,6 @@
 #include "TTree.h"
 #include "TLegend.h"
 #include "TPolyMarker.h"
-#include "TPolyLine3D.h"
 #include "TGraph.h"
 #include "TGraph2D.h"
 #include "TApplication.h"
@@ -31,25 +30,15 @@
 #include "MCTrackdata.h"
 
 std::vector<std::pair<int,int>> GlobalMaps;
+std::vector<TaskConfigStruct::ChipChnMaps_V1> GlobalJsonMaps;
 
 using namespace std;
 
-void FillPixelTPCdata()
-{
-    try {
-        RawdataConverter* myConvert = new RawdataConverter("/mnt/e/WorkSpace/DESYBeam_Test/test/TEPIX_test_canwen/0619_new_4/data_lg_300ns.dat_r.dat");
-        myConvert->DoUnpackage();
-        delete myConvert;
-    }catch (const std::exception& e)
-    {
-        std::cerr<< "Error: "<< e.what() <<std::endl;
-    }
-}
 
 void test01()
 {
-    auto file3 = TFile::Open("/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/task/MCdata_electron_5GeV_X0.21cmZ16cm.root");
-    if(!file3) return;
+    printf("==== test01 ====\n");
+#if 0
     auto processor3 = new PixHitRecoSimpleProcessor(file3);
     processor3->EnableProceesorDebug();
 
@@ -57,7 +46,6 @@ void test01()
     pm->AddProcessor(processor3);
     pm->StartProcessing();
 
-#if 0
     auto file1 = TFile::Open("/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/build/Test_lg_300ns.root");
     if(!file1) return;
     auto tree1 = dynamic_cast<TTree*>(file1->Get("PixTPCdata"));
@@ -193,8 +181,8 @@ int main(int argc, char** argv)
 
         auto CEPCPixtpcRunManager = new ProcessManager;
         try {
-            CEPCPixtpcRunManager->InitialMapsManually("/mnt/e/WorkSpace/GitRepo/PixTPC_beamtest/config/ChipChnMaps.csv");
-            //FillPixelTPCdata();
+            CEPCPixtpcRunManager->InitialMapsManually("/mnt/d/Data/experiment/DESYBeamTest/PixTPC_beamtest/config/ChipChnMapsV1.csv");
+            //CEPCPixtpcRunManager->InitialMapsFromJson()
             test01();
             //test02();
             //test03(std::atof(argv[2]));

@@ -34,7 +34,7 @@ class PixelTPCdata : public TObject
 {
 private:
     // Triggle_ID (Physics Evt_ID)
-    int fTriggleID;
+    unsigned long fTriggleID; // -> TimeStamp
     // ======================================================================================================
     //@Brief: Event Info table 
     //  std::vector<TYPE1>                 : vector to store all TEPIX chips info
@@ -58,12 +58,12 @@ public:
     PixelTPCdata(int NumofChips=24);
     ~PixelTPCdata() {};
     
-    PixelTPCdata& SetTiggleID(int triggleid);
+    PixelTPCdata& SetTiggleID(unsigned long triggleid);
 
     void FillPixelTPCdata(Array128Chns &arr128chns, int chipid);
     
     // Getters 
-    int GetTriggleID() { return fTriggleID; }
+    unsigned long GetTriggleID() { return fTriggleID; }
     Array128Chns & Getdata_I  (int chipid);
     VecSingleChn & Getdata_IJ (int chipid, int chnid);
     //PairQT       & Getdata_IJK(int chipid, int chnid, int kk); 

@@ -79,7 +79,8 @@ std::pair<int,int> BeamUnities::RowColIdx2ChipChn(int row, int col,const std::ve
 {
     if(row<0 || row>=__ROW__ || col<0 || col>=__COL__) 
     {
-        std::printf(">>>>>>>>>>>>>>>>>>>>>> Error!!! row col in RowColIdx2ChipChn\n");
+        //std::printf(">>>>>>>>>>>>>>>>>>>>>> Error!!! row col in RowColIdx2ChipChn\n");
+        PixTPCLog(PIXtpcERROR,">>> Error!!! row col in RowColIdx2ChipChn",true);
         //throw  std::out_of_range(">>>>>>>>>>>>>>>>>>>>>> Error!!! row col in RowColIdx2ChipChn");
         return std::make_pair(-1,-1);
     }
@@ -101,16 +102,24 @@ std::pair<int,int> BeamUnities::ChipChn2RowCol(int chipIdx, int chnIdx, const st
 {
     if(chipIdx <0 || chipIdx>=__NumChip__ || chnIdx<0 || chnIdx >= __NumChn__)
     {
-        std::printf(">>>>>>>>>>>>>>>>>>>>>> Error!!! chip chn Idx in ChipChn2RowCol\n");
+        //std::printf(">>>>>>>>>>>>>>>>>>>>>> Error!!! chip chn Idx in ChipChn2RowCol\n");
+        PixTPCLog(PIXtpcERROR,">>> Error!!! chip chn Idx in ChipChn2RowCol",true);
         return std::make_pair(-1,-1);
     }
     auto chipchnpair = std::make_pair(chipIdx,chnIdx);
-    
+
     auto it = std::find(vMaps.cbegin(),vMaps.cend(),chipchnpair);
 
-    auto Idxglobal = std::distance(vMaps.begin(),it);
-
-    return std::make_pair(Idxglobal/__COL__,Idxglobal%__COL__);
+    //Add find check
+    if(it!=vMaps.end())
+    {
+        auto Idxglobal = std::distance(vMaps.begin(),it);
+        return std::make_pair(Idxglobal/__COL__,Idxglobal%__COL__);
+    }
+    else 
+    {
+        return std::make_pair(-1,-1);
+    }
 }
 
 std::pair<int,int> BeamUnities::ChipChn2RowCol(std::pair<int,int> chipchnpair,const std::vector<std::pair<int,int>> vMaps)

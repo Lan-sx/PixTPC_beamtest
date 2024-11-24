@@ -68,7 +68,50 @@ void ProcessManager::InitialMapsFromJson()
 {
     if(fPixJsonParser.contains("GlobalChipChnMaps")) 
     {
+        //from csv file
         GlobalMaps = BeamUnities::CreateChipChnToRowColMap(fPixJsonParser.at("GlobalChipChnMaps"));
+    }else if(fPixJsonParser.contains("GlobalChipChnMapsJson"))
+    {
+        //from json config file
+        auto map_pathjsonObj = fPixJsonParser.at("GlobalChipChnMapsJson");
+        auto map_path = map_pathjsonObj.get<std::string>();
+        //std::vector<int> vGlobalIdx;
+        std::vector<std::pair<int,int>> vMaps(__ROW__*__COL__,{-1,-1});
+        std::ifstream ifs(map_path.c_str());
+        if(!ifs.is_open())
+        {
+            throw std::runtime_error("Json Map file does not exist");
+        }
+
+        std::string line;
+        while(std::getline(ifs,line))
+        {
+            auto chipchnmapsJsonObj = PixJson::parse(line);
+            TaskConfigStruct::ChipChnMaps_V1 pixelIdx = chipchnmapsJsonObj.get<TaskConfigStruct::ChipChnMaps_V1>();
+            //initial GlobalJsonMaps
+            GlobalJsonMaps.push_back(pixelIdx);
+            if(pixelIdx.isActived)
+            {
+                vMaps.at(pixelIdx.globalIdx)= std::make_pair(pixelIdx.chipchnIdx[0],
+                                                             pixelIdx.chipchnIdx[1]);
+                //vGlobalIdx.emplace_back(pixelIdx.globalIdx);
+            }
+        }
+        //PixTPCLog(PIXtpcDebug,Form("Global Idx size = %zu",vGlobalIdx.size()),false);
+        ifs.close();
+
+        GlobalMaps = vMaps;
+        PixTPCLog(PIXtpcINFO,"GlobalMaps initialized by json config file",false);
+#if 0
+        PixTPCLog(PIXtpcDebug,"End = !!!!!!!",false);
+        std::ofstream ofs_csv("./test.csv");
+        for(size_t idx=0; idx<__ROW__*__COL__;++idx)
+        {
+            ofs_csv<<idx<<","<<GlobalMaps.at(idx).first<<","<<GlobalMaps.at(idx).second<<std::endl;
+        }
+        ofs_csv.close();
+        PixTPCLog(PIXtpcDebug,"test.csv write done!",false);
+#endif
     }
     else
     {
@@ -81,14 +124,47 @@ void ProcessManager::InitialMapsFromJson()
 void ProcessManager::StartUnpackage()
 {
     PixTPCLog(PIXtpcDebug,"Test print in StartUnpackage()",false);
+    
+    //1/Read RawdataConverter input Pars list from json
+    if(fPixJsonParser.contains("RawdataConvParsList"))
+    {
+        TaskConfigStruct::RawdataConvParsList inputPars = fPixJsonParser.at("RawdataConvParsList");
+        auto multiConverter = new RawdataConverter(inputPars);
+        multiConverter->DoUnpackageRawdata2ROOT_withMultiIP();
+        delete multiConverter;
+    }
+    else
+    {
+        throw std::runtime_error("Error input json file, RawdataConverter need!!!");
+    }
+
+    //legacy code: only for single input file
+#if 0
     std::string inputrawbinfile= fPixJsonParser.at("Inputfile");
     std::string outputrootfile = fPixJsonParser.at("Outputfile");
     bool isdebug = fPixJsonParser.at("Isdebug");
+    int numofchipused=1;
+    if(fPixJsonParser.contains("NumberOfChipsUsed"))
+        numofchipused = fPixJsonParser.at("NumberOfChipsUsed");
+    else
+        numofchipused = __NumChip__;
+
     PixTPCLog(PIXtpcDebug,(inputrawbinfile+" "+outputrootfile).data(),false);
     
     auto myConverter = new RawdataConverter(inputrawbinfile,outputrootfile);
     if(isdebug)
+    {
+        int chipidxdebug(0), evtoverthreshold(0);
+        bool ampOrtime = true;
+        if(fPixJsonParser.contains("ChipIdxdebug"))
+            chipidxdebug = fPixJsonParser.at("ChipIdxdebug");
+        if(fPixJsonParser.contains("EvtOverThdebug"))
+            evtoverthreshold = fPixJsonParser.at("EvtOverThdebug");
+        if(fPixJsonParser.contains("AmpOrTime"))
+            ampOrtime = fPixJsonParser.at("AmpOrTime");
         myConverter->EnableUnpackgeDebug();
+        myConverter->SetdebugHistIndex(chipidxdebug,evtoverthreshold,ampOrtime);
+    }
     else
         myConverter->DisableUnpackgeDebug();
 
@@ -97,13 +173,14 @@ void ProcessManager::StartUnpackage()
         auto parasobj = fPixJsonParser.at("Debughistconfig");
         TaskConfigStruct::HistConfigList histconfiglist = parasobj;
         myConverter->ConfigDebugHist(histconfiglist);
-        PixTPCLog(PIXtpcDebug,"=======================",false);
-        std::cout<<" Dim        "<<histconfiglist.Dim<<"\n"
-                 <<" Histbins   ["<<histconfiglist.Histbins[0]<<","<<histconfiglist.Histbins[1]<<"]\n"
-                 <<" HistXYstart["<<histconfiglist.HistXYstart[0]<<","<<histconfiglist.HistXYstart[1]<<"]\n"
-                 <<" HistXYend  ["<<histconfiglist.HistXYend[0]<<","<<histconfiglist.HistXYend[0]<<"]"<<std::endl;
+        //PixTPCLog(PIXtpcDebug,"=======================",false);
+        //std::cout<<" Dim        "<<histconfiglist.Dim<<"\n"
+        //         <<" Histbins   ["<<histconfiglist.Histbins[0]<<","<<histconfiglist.Histbins[1]<<"]\n"
+        //         <<" HistXYstart["<<histconfiglist.HistXYstart[0]<<","<<histconfiglist.HistXYstart[1]<<"]\n"
+        //         <<" HistXYend  ["<<histconfiglist.HistXYend[0]<<","<<histconfiglist.HistXYend[0]<<"]"<<std::endl;
     }
-    auto flags1 = myConverter->DoUnpackageRawdata2ROOT();
+    //TODO, check according to flags1
+    auto flags1 = myConverter->DoUnpackageRawdata2ROOT(numofchipused);
     //auto myCoverter = new RawdataConverter("/mnt/e/WorkSpace/DESYBeam_Test/test/TEPIX_test_canwen/0619_new_4/data_lg_300ns.dat_r.dat");
     //myCoverter->DoUnpackage();
 
@@ -118,7 +195,8 @@ void ProcessManager::StartUnpackage()
     }
 
     delete myConverter;
-    PixTPCLog(PIXtpcDebug,"End of StartUnpackage()",false);
+#endif 
+    PixTPCLog(PIXtpcINFO,"End of StartUnpackage()",false);
 }
 
 void ProcessManager::StartGenMCdata()
@@ -178,9 +256,10 @@ void ProcessManager::StartRecoPixTPCEvts()
 {
     if(fPixJsonParser.contains("RecoProcessor")) 
     {
-        auto recoprocessor = fPixJsonParser.at("RecoProcessor");
-        //Reco Pix TPC hits or track using different processors
-        if(recoprocessor == "PixHitRecoSimpleProcessor") 
+        auto processor_name = fPixJsonParser.at("RecoProcessor");
+        //Reco/Print Pix TPC hits or track using different processors
+        //TODO using PixClusterSepRecoProcessor, under developing 
+        if( processor_name == "PixHitRecoSimpleProcessor") 
         {
             auto recoprocessorArray = fPixJsonParser.at("RecoProcessorArray");
 
@@ -191,9 +270,17 @@ void ProcessManager::StartRecoPixTPCEvts()
                 this->AddProcessor(pixhitrecoprocessor);
             }
         }
-        else 
+        else if( processor_name == "PrintProcessor")  
         {
-            //TODO using PixClusterSepRecoProcessor, under developing 
+            auto printprocessorArray = fPixJsonParser.at("RecoProcessorArray");
+            for(auto item : printprocessorArray)
+            {
+                TaskConfigStruct::PrintProcessorParsList printprocessor_i = item;
+                auto printprocessor = new PrintProcessor(printprocessor_i);
+                this->AddProcessor(printprocessor);
+            }
+            //auto pixhitrecoprocessor = new PixHitRecoSimpleProcessor(recoprocessor_i);
+            //this->AddProcessor(pixhitrecoprocessor);
         }
 
         PixTPCLog(PIXtpcINFO,Form("There are %d processors added! ###Start Processing...",this->GetEntries()),false);
