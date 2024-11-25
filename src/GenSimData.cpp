@@ -249,6 +249,8 @@ void GenSimData::WritePixelTPCdata(std::string filename)
             {
                 const int icol = colIdx[idx];
                 auto chipchnpair = BeamUnities::RowColIdx2ChipChn(irow,icol,GlobalMaps);
+                //Resize this pixel(channel) -> 4
+                (*pixeltpcdata)(chipchnpair.first,chipchnpair.second).resize(4);
                 auto pixelQ = (*mat10x300Q_i)(irow,icol);
                 //TODO pixelT info update... T fluctuation in amp gap and unit 
                 auto pixelT = (*mat10x300T_i)(irow,icol);
@@ -260,7 +262,7 @@ void GenSimData::WritePixelTPCdata(std::string filename)
                     auto pixelQ_withNoise = pixelBaselineQ + gRandom->Gaus(pixelQ,Sigma_electronics*pixelQ);
                     //applying number of electrons cut for all pixels
                     if(pixelQ_withNoise > NumOfe_cut)
-                        (*pixeltpcdata)(chipchnpair.first,chipchnpair.second).push_back(std::make_pair(pixelT,pixelQ_withNoise));
+                        (*pixeltpcdata)(chipchnpair.first,chipchnpair.second).at(0)=(std::make_pair(pixelT,pixelQ_withNoise));
                 }
                 else
                 {
