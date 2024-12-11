@@ -26,6 +26,9 @@ endif()
 #ROOT CERN
 find_package(ROOT REQUIRED COMPONENTS  RIO Hist Tree Net Spectrum MathCore MathMore)
 
+#spdlog 
+find_package(spdlog REQUIRED)
+
 #nlohmann 
 find_package(nlohmann_json REQUIRED)
 
@@ -61,7 +64,7 @@ target_link_libraries(MCTrackdata  PUBLIC ${ROOT_LIBRARIES} Garfield::Garfield)
 #add_executable(${PROJECT_NAME} mainPixTPC.cpp PixelTPCdata.h PixelTPCdata.cpp ${sources} ${headers})
 add_executable(${PROJECT_NAME} mainPixTPC.cpp  ${sources} ${headers})
 #target_link_libraries(${PROJECT_NAME} Garfield::Garfield ${ROOT_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} PixelTPCdata MCTrackdata nlohmann_json::nlohmann_json ${ROOT_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PixelTPCdata MCTrackdata nlohmann_json::nlohmann_json ${ROOT_LIBRARIES} spdlog::spdlog)
 #target_link_libraries(${PROJECT_NAME} ${ROOT_LIBRARIES})
 
 #target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
