@@ -21,6 +21,10 @@
 #include <cmath>
 #include <stdexcept>
 
+//spdlog
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 //ROOT CERN
 #include "PixelMatrix.h"
 
@@ -65,6 +69,7 @@ enum LogsFlag {
 #define PixTPCLog(flags,message,islocated) cepcPixTPClog(flags,__FILE__,__LINE__,message,islocated)
 
 void cepcPixTPClog(int flags, const std::string& file,int line,const std::string& message,bool islocated=true);
+
 
 //Colors array for visualization
 constexpr int ColorArray[9] = {kBlack,kBlue+1,kPink,
