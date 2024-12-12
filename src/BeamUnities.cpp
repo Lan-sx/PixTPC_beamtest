@@ -14,16 +14,16 @@ void cepcPixTPClog(int flags, const std::string& file,int line,const std::string
     switch (flags)
     {
         case PIXtpcINFO:
-            logflagStr = "INFO";
+            logflagStr = "info";
             break;
         case PIXtpcERROR:
-            logflagStr = "ERROR";
+            logflagStr = "error";
             break;
         case PIXtpcWARNING:
-            logflagStr = "WARNING";
+            logflagStr = "warning";
             break;
         case PIXtpcDebug:
-            logflagStr = "DEBUG";
+            logflagStr = "debug";
             break;
     }
     if(islocated)
