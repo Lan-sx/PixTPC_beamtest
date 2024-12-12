@@ -37,7 +37,7 @@ int ProcessManager::CEPCPixtpcRun()
     PixTPCLog(PIXtpcINFO,"==============================================",false);
     PixTPCLog(PIXtpcINFO,Form("> Start a Task: %s",TaskComments.c_str()),false);
     PixTPCLog(PIXtpcINFO,"==============================================",false);
-    
+    auto cepcPixTPClogger = spdlog::get("cepcPixTPClogger");
     switch(Tasktype)
     {
         case Rawdata2ROOT:
@@ -45,7 +45,8 @@ int ProcessManager::CEPCPixtpcRun()
             this->StartUnpackage();
             break;
         case GenMCdata:
-            std::printf("@@@GenMCdata!\n");
+            //std::printf("@@@GenMCdata!\n");
+            cepcPixTPClogger->info("@@@GenMCdata!");
             this->StartGenMCdata();
             break;
         case TPCEvtsReco:

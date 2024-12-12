@@ -172,6 +172,10 @@ int main(int argc, char** argv)
     TApplication app("app",&Argc,Argv);
     LansxFormat::myStyle();
 
+    //New log based on spdlog lib
+    std::shared_ptr<spdlog::logger> cepcPixTPCconsole = spdlog::stdout_color_mt("cepcPixTPClogger");
+    cepcPixTPCconsole->set_pattern("[cepcPixTPC %l]: %v");
+
     if(argc < 2)
     {
         PixTPCLog(PIXtpcINFO,"No task json file! Testing",false);
@@ -224,7 +228,7 @@ int main(int argc, char** argv)
         <<BeamUnities::ChipChn2RowCol(22,54,vmaps).first<<"\t"
         <<BeamUnities::ChipChn2RowCol(22,54,vmaps).second<<std::endl;
 #endif
-    PixTPCLog(PIXtpcINFO,"--------------------> Code end!",false);
+    cepcPixTPCconsole->info("--------------------> Code end!");
     app.Run(kTRUE);
     return 0;
 }
