@@ -8,8 +8,10 @@
  * ******************************************************************/
 //std
 #include <iostream>
+#include <unistd.h>
 
 // ROOT CERN
+#include "TSystem.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "TLegend.h"
@@ -175,8 +177,47 @@ int main(int argc, char** argv)
     //New log based on spdlog lib
     std::shared_ptr<spdlog::logger> cepcPixTPCconsole = spdlog::stdout_color_mt("cepcPixTPClogger");
     cepcPixTPCconsole->set_pattern("[cepcPixTPC %l]: %v");
+    
+    int opts;
+    std::string loglevel;
+    char* taskjsonfile = nullptr;
+     
+    while((opts = getopt(Argc,Argv,"J:L:")) != -1)
+    {
+        switch (opts)
+        {
+        case 'J':
+            taskjsonfile = optarg; 
+            break;
+        case 'L':
+            loglevel = optarg;
+            break;
+        default:
+            cepcPixTPCconsole->error("Usage: ./cepcPixTPC [-J jsonfile] [-L loglevel]");
+            gSystem->Exit(-1);
+        }
+    }
+    
+    //set loglevel
+    if(loglevel.size()!=0)
+    {
+        if (loglevel == "debug") {
+            cepcPixTPCconsole->set_level(spdlog::level::debug);
+        } else if (loglevel == "info") {
+            cepcPixTPCconsole->set_level(spdlog::level::info);
+        } else if (loglevel == "warn") {
+            cepcPixTPCconsole->set_level(spdlog::level::warn);
+        } else if (loglevel == "error") {
+            cepcPixTPCconsole->set_level(spdlog::level::err);
+        } else if (loglevel == "off") {
+            cepcPixTPCconsole->set_level(spdlog::level::off);
+        } else {
+            cepcPixTPCconsole->warn("Invalid log level {}. Defaulting to 'info'",loglevel);
+            cepcPixTPCconsole->set_level(spdlog::level::info);
+        }
+    }
 
-    if(argc < 2)
+    if(!taskjsonfile)
     {
         PixTPCLog(PIXtpcINFO,"No task json file! Testing",false);
         auto myc = new TCanvas("myc","myc",800,600);
@@ -196,9 +237,9 @@ int main(int argc, char** argv)
             PixTPCLog(PIXtpcERROR,e.what(),true);
         }
     }
-    else if(argc==2)
+    else 
     {
-        std::string taskfilestr(argv[1]);
+        std::string taskfilestr(taskjsonfile);
         try {
             auto CEPCPixtpcRunManager = new ProcessManager(taskfilestr);
             CEPCPixtpcRunManager->CEPCPixtpcRun();
@@ -208,27 +249,8 @@ int main(int argc, char** argv)
             PixTPCLog(PIXtpcERROR,e.what(),true);
         }
     }
-    else{
-        PixTPCLog(PIXtpcINFO,"uncorrected input paras",true);
-        return -1;
-    }
     
-#if 0 
-    //test print for GlobalMaps
-    auto rowcolpair = BeamUnities::Position2RowCol(0.06,0.06);
-    std::cout<<"-----> "<<rowcolpair.first<<"\t"<<rowcolpair.second<<std::endl;
-
-    std::cout<<"\t"<<vmaps.at(1000).first<<"\t"<<vmaps.at(1000).second<<std::endl;
-    std::cout<<"=======> "<<BeamUnities::RowColIdx2ChipChn(rowcolpair,vmaps).first<<"\t"
-        <<BeamUnities::RowColIdx2ChipChn(rowcolpair,vmaps).second<<endl;
-    std::cout<<"### "<<BeamUnities::RowColIdx2Position(rowcolpair).first<<"\t"
-        <<BeamUnities::RowColIdx2Position(rowcolpair).second<<std::endl;
-    std::cout<<"=======> "<<BeamUnities::ChipChn2RowCol(0,127,vmaps).first<<"\t"
-        <<BeamUnities::ChipChn2RowCol(0,127,vmaps).second<<"\t"
-        <<BeamUnities::ChipChn2RowCol(22,54,vmaps).first<<"\t"
-        <<BeamUnities::ChipChn2RowCol(22,54,vmaps).second<<std::endl;
-#endif
-    cepcPixTPCconsole->info("--------------------> Code end!");
+    cepcPixTPCconsole->critical("--------------------> Code end!");
     app.Run(kTRUE);
     return 0;
 }
