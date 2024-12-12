@@ -368,6 +368,7 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
         }
         else
         {
+            //FIXME, for the last package, it will not be filled into tree !!!
             //set globaltriggleId and Fill tree
             fPixtpcdata->SetTiggleID(preTimestamp);
             //if(chipnumberCnt_perTimestamp<8)
