@@ -10,6 +10,7 @@ Make sure you have installed:
 +  [ROOT](https://root.cern.ch)
 +  [Garfield++](https://garfieldpp.web.cern.ch/garfieldpp), for cepc PixTPC simulation
 +  [nlohmann](https://github.com/nlohmann/json), json parser, task config
++  [spdlog](https://github.com/gabime/spdlog), logger
 +  [cmake](https://cmake.org)
 Then,
     ```shell
