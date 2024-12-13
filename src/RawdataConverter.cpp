@@ -58,7 +58,8 @@ void  RawdataConverter::ConfigDebugHist(TaskConfigStruct::HistConfigList inputhi
 {
     if(!fIsdebug)
     {
-        PixTPCLog(PIXtpcWARNING,"Only used in debug mode",false);
+        //PixTPCLog(PIXtpcWARNING,"Only used in debug mode",false);
+        spdlog::get("cepcPixTPClogger")->warn("Only used in debug mode");
         return;
     }
 
@@ -67,14 +68,16 @@ void  RawdataConverter::ConfigDebugHist(TaskConfigStruct::HistConfigList inputhi
     fHistdebug = std::make_shared<TH1D>(hist_name,hist_title,inputhistconfig.Histbins[0],
                                         inputhistconfig.HistXYstart[0],
                                         inputhistconfig.HistXYend[0]);
-    PixTPCLog(PIXtpcDebug,"RawdataConverter debug hist created! fill Q/T from i-th chip",false);
+    //PixTPCLog(PIXtpcDebug,"RawdataConverter debug hist created! fill Q/T from i-th chip",false);
+    spdlog::get("cepcPixTPClogger")->debug("RawdataConverter debug hist created! fill Q/T from i-th chip");
 }
 
 void  RawdataConverter::ConfigDebugHist(int converter_idx, int nbins, int x_start, int x_end)
 {
     if(!fIsdebug)
     {
-        PixTPCLog(PIXtpcWARNING,"Only used in debug mode",false);
+        //PixTPCLog(PIXtpcWARNING,"Only used in debug mode",false);
+        spdlog::get("cepcPixTPClogger")->warn("Only used in debug mode");
         return;
     }
 
@@ -82,7 +85,8 @@ void  RawdataConverter::ConfigDebugHist(int converter_idx, int nbins, int x_star
 
     fHistdebug = std::make_shared<TH1D>(hist_name.Data(),"", nbins, x_start, x_end);
 
-    PixTPCLog(PIXtpcINFO,"RawdataConverter debug hist created! fill Q/T from i-th chip",false);
+    //PixTPCLog(PIXtpcINFO,"RawdataConverter debug hist created! fill Q/T from i-th chip",false);
+    spdlog::get("cepcPixTPClogger")->debug("RawdataConverter debug hist created! fill Q/T from i-th chip");
 }
 
 bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
@@ -139,16 +143,20 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
             mycDebug->cd(converter_i+1);
             gPad->SetGrid();
             histdebug_i->DrawCopy();
-            PixTPCLog(PIXtpcDebug,
-                      Form("Hist Package_%d, UnderFlow = %f , OverFlow = %f",converter_i,histdebug_i->GetBinContent(0),histdebug_i->GetBinContent(histdebug_i->GetNbinsX()+1)),false);
+
+            spdlog::get("cepcPixTPClogger")->debug("Hist Package_{:d}, UnderFlow = {.2f} , OverFlow = {.2f}",converter_i,
+                                                                                                             histdebug_i->GetBinContent(0),
+                                                                                                             histdebug_i->GetBinContent(histdebug_i->GetNbinsX()+1));
         }
         delete myConverter_i;
     }
 
-    PixTPCLog(PIXtpcINFO,Form(":> %d input binary files are converted to .root files.",numofIpaddress),false);
+    spdlog::get("cepcPixTPClogger")->info("> {:d} input binary files are converted to .root files.",numofIpaddress);
+
     if(numofIpaddress==1)
     {
-        PixTPCLog(PIXtpcINFO,"Only one IP input, skip merge process!!!",false);
+        //PixTPCLog(PIXtpcINFO,"Only one IP input, skip merge process!!!",false);
+        spdlog::get("cepcPixTPClogger")->info("Only one IP input, skip merge process!!!");
         return true;
     }
 
@@ -167,7 +175,8 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
         Arrtree[file_i] = dynamic_cast<TTree*>(Arrfile[file_i]->Get("PixTPCdata"));
 
         if(isdebugflag)
-            std::printf("[cepcPixTPC INFO]: %lld entries in %d-th sub .root\n",Arrtree[file_i]->GetEntries(),file_i);
+            spdlog::get("cepcPixTPClogger")->info("{} entries in {:d}-th sub .root",Arrtree[file_i]->GetEntries(),file_i);
+            //std::printf("[cepcPixTPC INFO]: %lld entries in %d-th sub .root\n",Arrtree[file_i]->GetEntries(),file_i);
 
         entry_set.insert(Arrtree[file_i]->GetEntries());
 
@@ -185,17 +194,18 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
     }
     if(entry_set.size()>1)
     {
-        PixTPCLog(PIXtpcINFO,"TimeStamp need Sync !!!",false);
+        spdlog::get("cepcPixTPClogger")->info("TimeStamp need Sync !!!");
+        //PixTPCLog(PIXtpcINFO,"TimeStamp need Sync !!!",false);
     }
     //Control merge
     if(!f_InputPars.Ismerge)
     {
-        PixTPCLog(PIXtpcINFO,"Skip Merge sub .root files Process!!!",false);
+        spdlog::get("cepcPixTPClogger")->info("Skip Merge sub .root files Process!!!");
         return false;
     }
     //std::printf("[ Debug ] There are %zu TimeStamps\n",MapTimeStampAll.size());
 
-    PixTPCLog(PIXtpcINFO,"Start Merging all sub .root!!!",false);
+    spdlog::get("cepcPixTPClogger")->info("Start Merging all sub .root!!!");
     //Create merge output .root file
     auto mergefile = std::make_unique<TFile>(f_InputPars.OutputfileMerge.c_str(),"RECREATE");
     mergefile->cd();
@@ -209,7 +219,8 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
     {
         //Print progress
         if(Cnt_timestamp%1000==0)
-            std::printf("[cepcPixTPC INFO]: ### %zu Timestamps Processed!\n",Cnt_timestamp++);
+            spdlog::get("cepcPixTPClogger")->info("## {} Timestamps Processed!",Cnt_timestamp);
+            //std::printf("[cepcPixTPC INFO]: ### %zu Timestamps Processed!\n",Cnt_timestamp++);
         if(vecentryidx.size() == numofIpaddress)     
         {
             //std::printf("[ Debug ] timestamp=0x%lX",timestamp);
@@ -217,7 +228,7 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
             //    std::printf(" %lld, ",entry_idx);
             //std::printf("\n");
             //for(long long entry_i=0; entry_i<100; ++entry_i)
-
+            Cnt_timestamp++;
             //Get i-th Entry
             for(size_t nn=0; nn<vecentryidx.size();++nn)
                 Arrtree[nn]->GetEntry(vecentryidx.at(nn));
@@ -250,7 +261,8 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
             //Clear current dataTable
             dataTableMerge->ClearPixelTPCdata(NumOfChipsToMerge);
         }
-    }
+    }//End loop all timestamp
+    spdlog::get("cepcPixTPClogger")->info("## {} Timestamps Processed!",Cnt_timestamp);
     //Write file
     mergetree->Write();
     delete mergetree;
@@ -266,8 +278,9 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT_withMultiIP()
     delete  []ArrPixTPCdata;
     delete  []Arrtree;
     delete  []Arrfile;
-    PixTPCLog(PIXtpcINFO,"Delete all sub .root pointers!!!",false);
-    PixTPCLog(PIXtpcINFO,"Merge processing successfully!!!",false);
+
+    spdlog::get("cepcPixTPClogger")->info("Delete all sub .root pointers!!!");
+    spdlog::get("cepcPixTPClogger")->info("Merge processing successfully!!!");
     return true;
 }
 
@@ -298,7 +311,7 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
     for(size_t ii=1; ii<vheaderPos.size(); ++ii)
     {
         if(ii%5000==0)
-            std::printf("[cepcPixTPC INFO]: ### %zu packages Done!\n",ii);
+            spdlog::get("cepcPixTPClogger")->info("### {} packages Done!",ii);
 
         auto bufferlength = vheaderPos.at(ii)-vheaderPos.at(ii-1);
 
@@ -310,16 +323,17 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
             ChippackageLengthWarning = true;
             continue;
         }
-#if 0
-        if(fIsdebug && ii>=55 && ii<=71)
+#if 1
+        //debug print first 128 data packages
+        if(fIsdebug && ii>=0 && ii<128)
         {
-            std::printf("[------- Debug Block------\n");
-            std::printf("ii=%zu bufferlength=%lld \n",ii,bufferlength);
+            spdlog::get("cepcPixTPClogger")->debug("[------- Debug Block------");
+            spdlog::get("cepcPixTPClogger")->debug("ii={} bufferlength={}",ii,bufferlength);
             printHeaderTail(vBuffer);
             printChipNumber(vBuffer);
             printTimeStamp(vBuffer);
             printTriggerNum(vBuffer);
-            std::printf("------- Debug Block------]\n");
+            spdlog::get("cepcPixTPClogger")->debug("------- Debug Block------]");
         }
 #endif
         int chipNumber = check_chipindex(vBuffer);
@@ -389,16 +403,17 @@ bool RawdataConverter::DoUnpackageRawdata2ROOT(int numofChipUsed)
     f_file->close();
 
     if(ChippackageLengthWarning)
-        PixTPCLog(PIXtpcWARNING,"Packet loss, no data of some chips in one entry!!!",false);
+        spdlog::get("cepcPixTPClogger")->warn("Packet loss, no data of some chips in one entry!!!");
     if(ChipNumberWarning)
-        PixTPCLog(PIXtpcWARNING,"Packet Chip Number out of range!!! ",false);
+        spdlog::get("cepcPixTPClogger")->warn("Packet Chip Number out of range!!! ");
 
     //Write tree 
     tr_out->Write();
     delete tr_out;
     outfile->Close();
 
-    PixTPCLog(PIXtpcINFO,Form("Raw binary data convert to ROOT data done!"),false);
+    //PixTPCLog(PIXtpcINFO,Form("Raw binary data convert to ROOT data done!"),false);
+    spdlog::get("cepcPixTPClogger")->info("Raw binary data convert to ROOT data done!");
     return true;
 }
 
@@ -472,6 +487,7 @@ void RawdataConverter::FillPixelTPCdataTable(const vector<unsigned char> vbuffer
         if(INDEX >= binarySeq.size()-2)
         {
             PixTPCLog(PIXtpcERROR,"------Package Error! out range of binarySeq size",true);
+            spdlog::get("cepcPixTPClogger")->error("------Package Error! out range of binarySeq size");
             break;
         }
         else

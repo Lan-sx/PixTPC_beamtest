@@ -158,25 +158,32 @@ inline int RawdataConverter::check_chipindex(const vector<unsigned char> vbuffer
 inline void RawdataConverter::printHeaderTail(const vector<unsigned char> vecbuffer)
 {
     auto tmpsize = vecbuffer.size();
-    std::printf("[cepcPixTPC INFO]: Head: 0x%02X 0x%02X Tail:0x%02X 0x%02X \n",vecbuffer.at(0),vecbuffer.at(1),
-                                                                               vecbuffer.at(tmpsize-2),vecbuffer.at(tmpsize-1));
+    spdlog::get("cepcPixTPClogger")->debug("Head: 0x{:X} 0x{:X} Tail: 0x{:X} 0x{:X}",
+                                           vecbuffer.at(0),vecbuffer.at(1),
+                                           vecbuffer.at(tmpsize-2),vecbuffer.at(tmpsize-1));
 }
 
 inline void RawdataConverter::printChipNumber(const vector<unsigned char> vecbuffer)
 {
-    std::printf("[cepcPixTPC INFO]: ChipNumber: 0x%02X 0x%02X\n",vecbuffer.at(2),vecbuffer.at(3));
+    //std::printf("[cepcPixTPC INFO]: ChipNumber: 0x%02X 0x%02X\n",vecbuffer.at(2),vecbuffer.at(3));
+    spdlog::get("cepcPixTPClogger")->debug("ChipNumber: 0x{:X} 0x{:X}",vecbuffer.at(2),vecbuffer.at(3));
 }
 
 inline void RawdataConverter::printTimeStamp (const vector<unsigned char> vecbuffer)
 {
     auto postimestamp = this->GetTimeStampinBigendian(vecbuffer);
-    std::printf("[cepcPixTPC INFO]: TimeStamp: 0x%lX\n",postimestamp);
+    //std::printf("[cepcPixTPC INFO]: TimeStamp: 0x%lX\n",postimestamp);
+    spdlog::get("cepcPixTPClogger")->debug("TimeStamp: 0x{:X}",postimestamp);
 }
 
 inline void RawdataConverter::printTriggerNum(const vector<unsigned char> vecbuffer)
 {
-    std::printf("[cepcPixTPC INFO]: Trigger Number: 0x%02X 0x%02X 0x%02X 0x%02X\n",vecbuffer.at(12),vecbuffer.at(13),
-                                                                                   vecbuffer.at(14),vecbuffer.at(15));
+    //std::printf("[cepcPixTPC INFO]: Trigger Number: 0x%02X 0x%02X 0x%02X 0x%02X\n",vecbuffer.at(12),vecbuffer.at(13),
+    //                                                                               vecbuffer.at(14),vecbuffer.at(15));
+
+    spdlog::get("cepcPixTPClogger")->debug("Trigger Number: 0x{:X} 0x{:X} 0x{:X} 0x{:X}",
+                                           vecbuffer.at(12),vecbuffer.at(13),
+                                           vecbuffer.at(14),vecbuffer.at(15));
 }
 
 #endif
