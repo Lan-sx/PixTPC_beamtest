@@ -8,7 +8,6 @@
  * ******************************************************************/
 //std
 #include <iostream>
-#include <unistd.h>
 
 // ROOT CERN
 #include "TSystem.h"
@@ -181,23 +180,27 @@ int main(int argc, char** argv)
     int opts;
     std::string loglevel;
     char* taskjsonfile = nullptr;
-     
-    while((opts = getopt(Argc,Argv,"J:L:")) != -1)
+    
+    for(int ii=1; ii < argc; ++ii)
     {
-        switch (opts)
+        if(std::strcmp(argv[ii],"-J")==0 && ii+1 < argc)
         {
-        case 'J':
-            taskjsonfile = optarg; 
-            break;
-        case 'L':
-            loglevel = optarg;
-            break;
-        default:
-            cepcPixTPCconsole->error("Usage: ./cepcPixTPC [-J jsonfile] [-L loglevel]");
+            cout<<"=========> "<<Argc<<endl;
+            taskjsonfile = argv[ii+1];
+            ii++;
+        }
+        else if(std::strcmp(argv[ii],"-L")==0 && ii+1 < argc)
+        {
+            loglevel = argv[ii+1]; 
+            ii++;
+        }
+        else
+        {
+            cepcPixTPCconsole->error("Usage: cepcPixTPC [-J task.json] -L [loglevel]");
             gSystem->Exit(-1);
         }
     }
-    
+   
     //set loglevel
     if(loglevel.size()!=0)
     {
