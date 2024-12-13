@@ -28,7 +28,6 @@ The `.rootmap` and `.pcm` files will be installed in `./install/lib` dir.
 ## How to Run?
 
     ```
-    $ cepcPixTPC [-J"task.json"] [-L"info"]
-    $ cepcPixTPC [-Jtask.json] [-Linfo]
+    $ cepcPixTPC [-J task.json] [-L info]
     ```
 PS: this program is under developing...

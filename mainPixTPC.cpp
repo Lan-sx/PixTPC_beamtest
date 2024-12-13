@@ -196,7 +196,7 @@ int main(int argc, char** argv)
         }
         else
         {
-            cepcPixTPCconsole->error("Usage: cepcPixTPC [-J task.json] -L [loglevel]");
+            cepcPixTPCconsole->error("Usage: cepcPixTPC [-J task.json] [-L loglevel]");
             gSystem->Exit(-1);
         }
     }
