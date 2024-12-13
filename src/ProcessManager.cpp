@@ -34,39 +34,41 @@ int ProcessManager::CEPCPixtpcRun()
     std::string TaskComments = fPixJsonParser.at("Comments");
     int Tasktype = fPixJsonParser.at("Tasktype");
     this->InitialMapsFromJson();
-    PixTPCLog(PIXtpcINFO,"==============================================",false);
-    PixTPCLog(PIXtpcINFO,Form("> Start a Task: %s",TaskComments.c_str()),false);
-    PixTPCLog(PIXtpcINFO,"==============================================",false);
     auto cepcPixTPClogger = spdlog::get("cepcPixTPClogger");
+
+    cepcPixTPClogger->critical("==============================================");
+    cepcPixTPClogger->critical("> Start a Task: {}",TaskComments);
+    cepcPixTPClogger->critical("==============================================");
+
     switch(Tasktype)
     {
         case Rawdata2ROOT:
-            std::printf("@@@Raw data to root file!\n");
+            cepcPixTPClogger->info("@@@Raw data to root file!");
             this->StartUnpackage();
             break;
         case GenMCdata:
-            //std::printf("@@@GenMCdata!\n");
             cepcPixTPClogger->info("@@@GenMCdata!");
             this->StartGenMCdata();
             break;
         case TPCEvtsReco:
-            std::printf("@@@TPC evts reconstruction!\n");
+            cepcPixTPClogger->info("@@@TPC evts reconstruction!");
             this->StartRecoPixTPCEvts();
             break;
         case TPCcalibration:
-            std::printf("@@@TPC calibration!\n");
+            cepcPixTPClogger->info("@@@TPC calibration!");
             break;
         default:
             this->PrintUsage();
-            PixTPCLog(PIXtpcINFO,"Dummy task!",false);
+            cepcPixTPClogger->info("Dummy task!");
     }
 
-    PixTPCLog(PIXtpcINFO,Form("> End of Task:%s",TaskComments.c_str()),false);
+    cepcPixTPClogger->critical("> End of Task: {}",TaskComments);
     return 0;
 }
 
 void ProcessManager::InitialMapsFromJson()
 {
+    auto cepcPixTPClogger = spdlog::get("cepcPixTPClogger");
     if(fPixJsonParser.contains("GlobalChipChnMaps")) 
     {
         //from csv file
@@ -98,11 +100,11 @@ void ProcessManager::InitialMapsFromJson()
                 //vGlobalIdx.emplace_back(pixelIdx.globalIdx);
             }
         }
-        //PixTPCLog(PIXtpcDebug,Form("Global Idx size = %zu",vGlobalIdx.size()),false);
         ifs.close();
 
         GlobalMaps = vMaps;
-        PixTPCLog(PIXtpcINFO,"GlobalMaps initialized by json config file",false);
+        cepcPixTPClogger->debug("Global Idx size = {}",GlobalMaps.size());
+        cepcPixTPClogger->info("GlobalMaps initialized by json config file");
 #if 0
         PixTPCLog(PIXtpcDebug,"End = !!!!!!!",false);
         std::ofstream ofs_csv("./test.csv");
@@ -116,7 +118,7 @@ void ProcessManager::InitialMapsFromJson()
     }
     else
     {
-        PixTPCLog(PIXtpcERROR,"No Chip Chn map file",true);
+        cepcPixTPClogger->error("No Chip Chn map file");
         throw std::runtime_error("No Chip Chn map file in task json");
     }
         
@@ -124,8 +126,6 @@ void ProcessManager::InitialMapsFromJson()
 
 void ProcessManager::StartUnpackage()
 {
-    PixTPCLog(PIXtpcDebug,"Test print in StartUnpackage()",false);
-    
     //1/Read RawdataConverter input Pars list from json
     if(fPixJsonParser.contains("RawdataConvParsList"))
     {
@@ -197,7 +197,7 @@ void ProcessManager::StartUnpackage()
 
     delete myConverter;
 #endif 
-    PixTPCLog(PIXtpcINFO,"End of StartUnpackage()",false);
+    spdlog::get("cepcPixTPClogger")->info("End of StartUnpackage()");
 }
 
 void ProcessManager::StartGenMCdata()
@@ -284,7 +284,7 @@ void ProcessManager::StartRecoPixTPCEvts()
             //this->AddProcessor(pixhitrecoprocessor);
         }
 
-        PixTPCLog(PIXtpcINFO,Form("There are %d processors added! ###Start Processing...",this->GetEntries()),false);
+        spdlog::get("cepcPixTPClogger")->info("There are {} processors added! ###Start Processing...",this->GetEntries());
         this->StartProcessing();
         
     }
@@ -296,12 +296,13 @@ void ProcessManager::StartRecoPixTPCEvts()
 
 void ProcessManager::PrintUsage()
 {
-    std::printf("========================================\n");
-    std::printf("Tasktype: [0], Raw data to ROOT         \n");
-    std::printf("Tasktype: [1], generate MC data         \n");
-    std::printf("Tasktype: [2], TPC evts reconstruction  \n");
-    std::printf("Tasktype: [3], TPC calibration          \n");
-    std::printf("========================================\n");
+    auto cepcPixTPClogger = spdlog::get("cepcPixTPClogger");
+    cepcPixTPClogger->info("========================================");
+    cepcPixTPClogger->info("Tasktype: [0], Raw data to ROOT         ");
+    cepcPixTPClogger->info("Tasktype: [1], Generate MC data         ");
+    cepcPixTPClogger->info("Tasktype: [2], TPC evts reconstruction  ");
+    cepcPixTPClogger->info("Tasktype: [3], TPC calibration          ");
+    cepcPixTPClogger->info("========================================");
 }
 
 void ProcessManager::AddProcessor(Processor* processor)

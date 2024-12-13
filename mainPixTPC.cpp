@@ -185,7 +185,6 @@ int main(int argc, char** argv)
     {
         if(std::strcmp(argv[ii],"-J")==0 && ii+1 < argc)
         {
-            cout<<"=========> "<<Argc<<endl;
             taskjsonfile = argv[ii+1];
             ii++;
         }
@@ -222,7 +221,7 @@ int main(int argc, char** argv)
 
     if(!taskjsonfile)
     {
-        PixTPCLog(PIXtpcINFO,"No task json file! Testing",false);
+        cepcPixTPCconsole->info("No task json file! Testing");
         auto myc = new TCanvas("myc","myc",800,600);
         myc->SetGrid();
         myc->DrawFrame(0,0,1,1,"Test;x;y");
@@ -237,7 +236,7 @@ int main(int argc, char** argv)
             delete CEPCPixtpcRunManager;
         } catch (const std::exception& e)
         {
-            PixTPCLog(PIXtpcERROR,e.what(),true);
+            cepcPixTPCconsole->error("{}",e.what());
         }
     }
     else 
@@ -249,7 +248,7 @@ int main(int argc, char** argv)
             delete CEPCPixtpcRunManager;
         } catch (const std::exception& e)
         {
-            PixTPCLog(PIXtpcERROR,e.what(),true);
+            cepcPixTPCconsole->error("{}",e.what());
         }
     }
     
