@@ -282,6 +282,16 @@ void ProcessManager::StartRecoPixTPCEvts()
             }
             //auto pixhitrecoprocessor = new PixHitRecoSimpleProcessor(recoprocessor_i);
             //this->AddProcessor(pixhitrecoprocessor);
+        }else if( processor_name == "PixHitRecoCCAProcessor" )
+        {
+            auto recoprocessorArray = fPixJsonParser.at("RecoProcessorArray");
+
+            for(auto item : recoprocessorArray)
+            {
+                TaskConfigStruct::PixTPChitRecoParsList recoprocessor_i = item;
+                auto pixhitrecoprocessor = new PixHitRecoCCAProcessor(recoprocessor_i);
+                this->AddProcessor(pixhitrecoprocessor);
+            }
         }
 
         spdlog::get("cepcPixTPClogger")->info("There are {} processors added! ###Start Processing...",this->GetEntries());

@@ -28,6 +28,7 @@
 #include "RawdataConverter.h"
 #include "Processor.h"
 #include "PixHitRecoSimpleProcessor.h"
+#include "PixHitRecoCCAProcessor.h"
 #include "PrintProcessor.h"
 #include "GenSimData.h"
 
