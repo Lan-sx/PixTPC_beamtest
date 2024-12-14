@@ -34,6 +34,12 @@ public:
     PixHitRecoCCAProcessor(TaskConfigStruct::PixTPChitRecoParsList recoparaslist);
     //Dtor
     ~PixHitRecoCCAProcessor();
+    
+    enum ClusterAlgo
+    {
+        CCA_DFS=0,
+        CCA_TwoPass
+    };
 
     // Implementation of virtual functions
     virtual void InitAction()  override;
@@ -46,6 +52,11 @@ public:
     void EnableProceesorDebug() { fIsdebug = true; }
     
 protected:
+    // Step I, clustering
+    void TPChitsClusterFinder(int algo);
+    // Step II, 
+    //void SearchPeaks();
+
     //Debug vars
     //TH1D** fHistRecohitsArray;
     //void InitialHistRecohits(int numofhist);
